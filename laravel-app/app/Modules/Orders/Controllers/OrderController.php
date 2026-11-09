@@ -7,6 +7,7 @@ use App\Modules\Orders\Models\OrderItem;
 use App\Modules\Products\Models\Product;
 use App\Services\InventoryGrpcClient;
 use App\Support\ApiErrors;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -26,27 +27,46 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
-        return response()->json($orders);
+        return ApiResponse::success($orders, 'Orders retrieved successfully');
+    }
+
+    public function adminIndex(Request $request)
+    {
+        if ($request->user()->role !== 'admin') {
+            return ApiErrors::json(403, 'FORBIDDEN', 'Unauthorized action.');
+        }
+
+        $query = Order::with(['user', 'items.product']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->latest()->paginate(20);
+
+        return ApiResponse::success($orders, 'All orders retrieved successfully');
     }
 
     public function show(Request $request, $id)
     {
-        $order = $request->user()
-            ->orders()
-            ->with('items.product')
-            ->find($id);
+        $user = $request->user();
+        $order = Order::with('items.product')->find($id);
 
         if (!$order) {
             return ApiErrors::json(404, 'NOT_FOUND', 'Order not found');
         }
 
-        return response()->json($order);
+        if (!$user->isAdmin() && $order->user_id !== $user->id) {
+            return ApiErrors::json(403, 'FORBIDDEN', 'Unauthorized to view this order');
+        }
+
+        return ApiResponse::success($order, 'Order retrieved successfully');
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'items'                 => 'required|array|min:1',
+            'items'              => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.quantity'   => 'required|integer|min:1',
         ]);
@@ -73,7 +93,6 @@ class OrderController extends Controller
             ];
         }
 
-        // 1) حجز المخزون أولًا
         try {
             $reserve = $this->inventory->reserve($orderRef, $reserveItems);
         } catch (\Throwable $e) {
@@ -89,7 +108,6 @@ class OrderController extends Controller
             );
         }
 
-        // 2) حفظ الطلب
         try {
             $order = DB::transaction(function () use ($request, $orderRef, $total, $lines) {
                 $order = Order::create([
@@ -111,7 +129,6 @@ class OrderController extends Controller
                 return $order->load('items.product');
             });
         } catch (\Throwable $e) {
-            // 3) تعويض: تحرير الحجز
             try {
                 $this->inventory->release($orderRef);
             } catch (\Throwable $ignored) {
@@ -120,22 +137,20 @@ class OrderController extends Controller
             return ApiErrors::json(500, 'INTERNAL_ERROR', 'Failed to save order, stock released');
         }
 
-        return response()->json([
-            'message' => 'Order placed successfully',
-            'order'   => $order,
-        ], 201);
+        return ApiResponse::success($order, 'Order placed successfully', 201);
     }
 
     public function cancel(Request $request, $id)
     {
         $user = $request->user();
-
-        $order = $user->isAdmin()
-            ? Order::find($id)
-            : $user->orders()->find($id);
+        $order = Order::find($id);
 
         if (!$order) {
             return ApiErrors::json(404, 'NOT_FOUND', 'Order not found');
+        }
+
+        if (!$user->isAdmin() && $order->user_id !== $user->id) {
+            return ApiErrors::json(403, 'FORBIDDEN', 'Unauthorized to cancel this order');
         }
 
         if ($order->status === 'cancelled') {
@@ -150,11 +165,13 @@ class OrderController extends Controller
 
         $order->update(['status' => 'cancelled']);
 
-        return response()->json(['message' => 'Order cancelled and stock restored']);
+        return ApiResponse::success($order, 'Order cancelled and stock restored');
     }
 
-    public function updateStatus(Request $request, $id)
+public function updateStatus(Request $request, $id)
     {
+        $user = $request->user();
+
         $data = $request->validate([
             'status' => 'required|in:pending,confirmed,cancelled',
         ]);
@@ -164,7 +181,28 @@ class OrderController extends Controller
             return ApiErrors::json(404, 'NOT_FOUND', 'Order not found');
         }
 
-        if ($data['status'] === 'cancelled' && $order->status !== 'cancelled') {
+        if (!$user->isAdmin() && $order->user_id !== $user->id) {
+            return ApiErrors::json(403, 'FORBIDDEN', 'Unauthorized to update this order status');
+        }
+
+        $currentStatus = $order->status;
+        $newStatus = $data['status'];
+
+        $allowedTransitions = [
+            'pending'   => ['confirmed', 'cancelled'],
+            'confirmed' => ['cancelled'],
+            'cancelled' => [], 
+        ];
+
+        if (!in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])) {
+            return ApiErrors::json(
+                422, 
+                'INVALID_TRANSITION', 
+                "Cannot transition order status from '{$currentStatus}' to '{$newStatus}'"
+            );
+        }
+
+        if ($newStatus === 'cancelled' && $currentStatus !== 'cancelled') {
             try {
                 $this->inventory->release($order->order_ref);
             } catch (\Throwable $e) {
@@ -172,11 +210,7 @@ class OrderController extends Controller
             }
         }
 
-        $order->update(['status' => $data['status']]);
+        $order->update(['status' => $newStatus]);
 
-        return response()->json([
-            'message' => 'Status updated',
-            'order'   => $order->fresh('items.product'),
-        ]);
-    }
-}
+        return ApiResponse::success($order->fresh('items.product'), 'Status updated successfully');
+    }}
