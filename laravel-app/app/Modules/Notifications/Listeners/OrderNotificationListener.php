@@ -13,15 +13,15 @@ class OrderNotificationListener
     public function onCreated(OrderCreated $event): void
     {
         $this->notify(
-            $event->userId,
-            'order.created',
-            'Order received',
-            sprintf(
-                'Your order #%d was created. Total: %s',
-                $event->orderId,
-                number_format($event->totalAmount, 2, '.', '')
-            ),
-        );
+                $event->userId,
+                'order.created',
+                'Order received',
+                sprintf(
+                    'Your order #%d was created. Total: %s',
+                    $event->orderId,
+                    number_format($event->totalAmount, 2, '.', '')
+                ),
+            );
     }
 
     public function onStatusChanged(OrderStatusChanged $event): void

@@ -176,7 +176,7 @@ class OrderController extends Controller
         return ApiResponse::success($order, 'Order cancelled and stock restored');
     }
 
-public function updateStatus(Request $request, $id)
+    public function updateStatus(Request $request, $id)
     {
         $user = $request->user();
 
@@ -222,9 +222,10 @@ public function updateStatus(Request $request, $id)
         Event::dispatch(new OrderStatusChanged(
             userId: (int) $order->user_id,
             orderId: (int) $order->id,
-            from: $oldStatus,
+            from: $currentStatus,
             to: $newStatus,
         ));
 
         return ApiResponse::success($order->fresh('items.product'), 'Status updated successfully');
-    }}
+    }
+    }

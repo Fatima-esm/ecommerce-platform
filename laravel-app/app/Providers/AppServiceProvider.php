@@ -19,6 +19,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Modules\Orders\Events\OrderCreated::class,
+            [\App\Modules\Notifications\Listeners\OrderNotificationListener::class, 'onCreated']
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Modules\Orders\Events\OrderStatusChanged::class,
+            [\App\Modules\Notifications\Listeners\OrderNotificationListener::class, 'onStatusChanged']
+        );
     }
-}
+    
+    }
