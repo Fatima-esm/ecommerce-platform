@@ -3,10 +3,11 @@
 use App\Modules\Products\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('products')->group(function () {
+Route::prefix('v1/products')->group(function () {
     // عامة
     Route::get('/', [ProductController::class, 'index']);
     Route::get('/{product}', [ProductController::class, 'show']);
+    Route::get('{product}/image', [ProductController::class, 'image']);
 
     // محمية + Admin فقط
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {

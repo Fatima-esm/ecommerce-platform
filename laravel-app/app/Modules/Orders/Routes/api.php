@@ -3,7 +3,7 @@
 use App\Modules\Orders\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+Route::middleware('auth:sanctum')->prefix('v1/orders')->group(function () {
     Route::get('/', [OrderController::class, 'index']);
     Route::post('/', [OrderController::class, 'store']);
     Route::get('/{id}', [OrderController::class, 'show']);

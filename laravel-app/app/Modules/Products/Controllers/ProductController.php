@@ -124,4 +124,15 @@ class ProductController extends Controller
 
         return response()->json(['message' => 'Product deleted successfully']);
     }
+
+    public function image(Product $product)
+    {
+        if (!$product->image_path || !Storage::disk('public')->exists($product->image_path)) {
+            return ApiErrors::json(404, 'NOT_FOUND', 'Product image not found');
+        }
+
+        $path = Storage::disk('public')->path($product->image_path);
+        
+        return response()->file($path);
+    }
 }
