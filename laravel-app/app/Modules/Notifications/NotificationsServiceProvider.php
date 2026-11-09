@@ -1,22 +1,37 @@
 <?php
 
-namespace App\Modules\Notifications;
+namespace App\Modules\Notifications\Http\Controllers;
 
-use App\Modules\Notifications\Listeners\OrderNotificationListener;
-use App\Modules\Orders\Events\OrderCreated;
-use App\Modules\Orders\Events\OrderStatusChanged;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\ServiceProvider;
+use App\Modules\Notifications\Models\UserNotification;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class NotificationsServiceProvider extends ServiceProvider
+class NotificationController
 {
-    public function boot(): void
+    public function index(Request $request): JsonResponse
     {
-        $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
-        $this->loadRoutesFrom(__DIR__.'/routes.php');
+        $items = UserNotification::query()
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get(['id', 'type', 'title', 'body', 'read_at', 'created_at']);
 
-        // نستمع لأحداث الطلبات العامة فقط (Events)، لا نقرأ جداول الطلبات
-        Event::listen(OrderCreated::class, [OrderNotificationListener::class, 'onCreated']);
-        Event::listen(OrderStatusChanged::class, [OrderNotificationListener::class, 'onStatusChanged']);
+        return response()->json(['data' => $items]);
+    }
+
+    public function markRead(Request $request, int $id): JsonResponse
+    {
+        $n = UserNotification::query()
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        $n->update(['read_at' => now()]);
+
+        return response()->json([
+            'data' => [
+                'id' => $n->id,
+                'read_at' => $n->read_at?->toIso8601String(),
+            ],
+        ]);
     }
 }

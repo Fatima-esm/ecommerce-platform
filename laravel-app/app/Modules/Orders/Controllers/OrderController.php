@@ -12,6 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Modules\Orders\Events\OrderCreated;
+use App\Modules\Orders\Events\OrderStatusChanged;
+use Illuminate\Support\Facades\Event;
 
 class OrderController extends Controller
 {
@@ -136,6 +139,11 @@ class OrderController extends Controller
 
             return ApiErrors::json(500, 'INTERNAL_ERROR', 'Failed to save order, stock released');
         }
+        Event::dispatch(new OrderCreated(
+            userId: (int) $order->user_id,
+            orderId: (int) $order->id,
+            totalAmount: (float) $order->total_amount,
+        ));
 
         return ApiResponse::success($order, 'Order placed successfully', 201);
     }
@@ -181,10 +189,9 @@ public function updateStatus(Request $request, $id)
             return ApiErrors::json(404, 'NOT_FOUND', 'Order not found');
         }
 
-        if (!$user->isAdmin() && $order->user_id !== $user->id) {
-            return ApiErrors::json(403, 'FORBIDDEN', 'Unauthorized to update this order status');
+        if (!$user->isAdmin()) {
+            return ApiErrors::json(403, 'FORBIDDEN', 'Only admin can change order status');
         }
-
         $currentStatus = $order->status;
         $newStatus = $data['status'];
 
@@ -211,6 +218,13 @@ public function updateStatus(Request $request, $id)
         }
 
         $order->update(['status' => $newStatus]);
+
+        Event::dispatch(new OrderStatusChanged(
+            userId: (int) $order->user_id,
+            orderId: (int) $order->id,
+            from: $oldStatus,
+            to: $newStatus,
+        ));
 
         return ApiResponse::success($order->fresh('items.product'), 'Status updated successfully');
     }}
