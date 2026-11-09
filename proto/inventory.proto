@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package inventory;
+
+// ===== خيارات خاصة بـ Java (Spring) =====
+option java_multiple_files = true;
+option java_package = "com.ecommerce.inventory.grpc";
+option java_outer_classname = "InventoryProto";
+
+// ===== تعريف الخدمة =====
+service InventoryService {
+  // 1. معرفة الكمية المتوفرة لمنتج معين
+  rpc GetStock (GetStockRequest) returns (GetStockReply);
+
+  // 2. حجز كميات عدة منتجات لطلب واحد (كل أو لا شيء)
+  rpc Reserve  (ReserveRequest)  returns (ReserveReply);
+
+  // 3. إرجاع الكميات المحجوزة إذا فشل إنشاء الطلب
+  rpc Release  (ReleaseRequest)  returns (ReleaseReply);
+
+  // 4. ضبط الكمية الابتدائية (مفيد عند إضافة منتج جديد)
+  rpc SetStock (SetStockRequest) returns (SetStockReply);
+}
+
+// ===== الرسائل =====
+
+message StockItem {
+  int64 product_id = 1;   // رقم المنتج
+  int32 quantity   = 2;   // الكمية المطلوبة أو المحجوزة
+}
+
+// ---- GetStock ----
+message GetStockRequest {
+  int64 product_id = 1;
+}
+
+message GetStockReply {
+  bool  found     = 1;    // هل المنتج موجود في المستودع؟
+  int32 available = 2;    // الكمية المتوفرة حالياً
+}
+
+// ---- Reserve ----
+message ReserveRequest {
+  string order_ref = 1;           // مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+  repeated StockItem items = 2;   // قائمة المنتجات والكميات المراد حجزها
+}
+
+message FailedItem {
+  int64  product_id = 1;
+  int32  requested  = 2;
+  int32  available  = 3;
+  string reason     = 4;          // مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+}
+
+message ReserveReply {
+  bool   success           = 1;
+  string message           = 2;
+  repeated FailedItem failed_items = 3;  // فارغ إذا نجح الحجز
+}
+
+// ---- Release ----
+message ReleaseRequest {
+  string order_ref = 1;   // نفس المرجع الذي استُخدم في Reserve
+}
+
+message ReleaseReply {
+  bool   success = 1;
+  string message = 2;
+}
+
+// ---- SetStock ----
+message SetStockRequest {
+  int64 product_id = 1;
+  int32 quantity   = 2;
+}
+
+message SetStockReply {
+  bool success = 1;
+}

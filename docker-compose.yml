@@ -1,0 +1,85 @@
+services:
+  # قاعدة بيانات Laravel
+  laravel-db:
+    image: postgres:16-alpine
+    container_name: laravel-db
+    environment:
+      POSTGRES_DB: shop
+      POSTGRES_USER: shop
+      POSTGRES_PASSWORD: shop
+    volumes:
+      - laravel-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop -d shop"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  # قاعدة بيانات خدمة المستودع
+  inventory-db:
+    image: postgres:16-alpine
+    container_name: inventory-db
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: inventory
+      POSTGRES_PASSWORD: inventory
+    volumes:
+      - inventory-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventory -d inventory"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5433:5432"
+
+  # خدمة المستودع (Spring Boot + gRPC)
+  inventory:
+    build: ./inventory-service
+    container_name: inventory
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://inventory-db:5432/inventory
+      SPRING_DATASOURCE_USERNAME: inventory
+      SPRING_DATASOURCE_PASSWORD: inventory
+      GRPC_SERVER_PORT: 9090
+    depends_on:
+      inventory-db:
+        condition: service_healthy
+    ports:
+      - "9090:9090"   # gRPC port
+
+  # التطبيق الأساسي (Laravel) -> http://127.0.0.1:8088
+  laravel:
+    build: ./laravel-app
+    container_name: laravel
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:YvHTIIzZ2JCMi1dV4+ROpQQQmhR+qPSpXQIctXP52jM=
+      DB_CONNECTION: pgsql
+      DB_HOST: laravel-db
+      DB_PORT: 5432
+      DB_DATABASE: shop
+      DB_USERNAME: shop
+      DB_PASSWORD: shop
+      INVENTORY_GRPC_HOST: inventory
+      INVENTORY_GRPC_PORT: 9090
+      INVENTORY_GRPC_TIMEOUT: 3
+      PHP_CLI_SERVER_WORKERS: "4"   # بدونه يعالج الخادم طلباً واحداً في كل مرة
+    depends_on:
+      laravel-db:
+        condition: service_healthy
+      inventory:
+        condition: service_started
+    ports:
+      - "8088:8000"   # المنفذ 8088 على جهازك -> المنفذ 8000 داخل الحاوية (الذي يشغّله CMD في Dockerfile)
+    volumes:
+      - ./laravel-app:/var/www/html
+      - uploads:/var/www/html/storage/app/public
+
+volumes:
+  laravel-db-data:
+  inventory-db-data:
+  uploads:
