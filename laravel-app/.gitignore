@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/inventory-service/target/
+/laravel-app/vendor/
+/laravel-app/node_modules/
+.env
