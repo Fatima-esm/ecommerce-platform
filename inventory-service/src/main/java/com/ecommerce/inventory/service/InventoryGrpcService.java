@@ -20,10 +20,13 @@ import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
+
+
 
 @GrpcService
 public class InventoryGrpcService extends InventoryServiceGrpc.InventoryServiceImplBase {
@@ -37,181 +40,193 @@ public class InventoryGrpcService extends InventoryServiceGrpc.InventoryServiceI
         this.reservationRepository = reservationRepository;
     }
 
-    // ==================== GetStock ====================
+    //      GetStock: get the available stock quantity for a product  
     @Override
     @Transactional(readOnly = true)
     public void getStock(GetStockRequest request, StreamObserver<GetStockReply> responseObserver) {
         Optional<Stock> stock = stockRepository.findByProductId(request.getProductId());
 
-        GetStockReply reply = stock
-                .map(s -> GetStockReply.newBuilder()
-                        .setFound(true)
-                        .setAvailable(s.getQuantity())
-                        .build())
-                .orElseGet(() -> GetStockReply.newBuilder()
-                        .setFound(false)
-                        .setAvailable(0)
-                        .build());
+        GetStockReply.Builder reply = GetStockReply.newBuilder();
+        if (stock.isPresent()) {
+            reply.setFound(true);
+            reply.setAvailable(stock.get().getQuantity());
+        } else {
+            reply.setFound(false);
+            reply.setAvailable(0);
+        }
 
-        responseObserver.onNext(reply);
-        responseObserver.onCompleted();
+        send(responseObserver, reply.build());
     }
 
-    // ==================== Reserve ====================
+    //      Reserve: reserve quantities for an order (all or nothing)
     @Override
-    @Transactional
+    @Transactional //all or nothing
     public void reserve(ReserveRequest request, StreamObserver<ReserveReply> responseObserver) {
+
         String orderRef = request.getOrderRef().trim();
         if (orderRef.isEmpty()) {
-            complete(responseObserver, failure("order_ref is required"));
+            send(responseObserver, reserveFailure("order_ref is required", new ArrayList<>()));
+            return;
+        }
+        if (request.getItemsList().isEmpty()) {
+            send(responseObserver, reserveFailure("No items to reserve", new ArrayList<>()));
             return;
         }
 
-        // Idempotency: إذا كان الحجز موجود مسبقاً
+        // 2) Idempotency: if the same order_ref is sent again, we check if it was already reserved or released.
         List<Reservation> existing = reservationRepository.findByOrderRefOrderByProductIdAsc(orderRef);
         if (!existing.isEmpty()) {
-            boolean active = existing.stream()
-                    .allMatch(r -> r.getStatus() == Reservation.Status.ACTIVE);
+            boolean allActive = true;
+            for (Reservation r : existing) {
+                if (r.getStatus() != Reservation.Status.ACTIVE) {
+                    allActive = false;
+                }
+            }
 
-            complete(responseObserver, ReserveReply.newBuilder()
-                    .setSuccess(active)
-                    .setMessage(active ? "Reservation already exists" : "Reservation was already released")
-                    .build());
+            ReserveReply.Builder reply = ReserveReply.newBuilder();
+            reply.setSuccess(allActive);
+            if (allActive) {
+                reply.setMessage("Reservation already exists");
+            } else {
+                reply.setMessage("Reservation was already released");
+            }
+            send(responseObserver, reply.build());
             return;
         }
 
-        // تجميع الكميات المطلوبة
-        Map<Long, Integer> requested = new LinkedHashMap<>();
-        List<FailedItem> invalid = new ArrayList<>();
+        //   if customers send the same order_ref again, we will check if it was already reserved or released.
+        Map<Long, Integer> requested = new TreeMap<>();
+        List<FailedItem> invalidItems = new ArrayList<>();
 
         for (StockItem item : request.getItemsList()) {
             if (item.getQuantity() <= 0) {
-                invalid.add(failedItem(item.getProductId(), item.getQuantity(), 0, "INVALID_QUANTITY"));
-                continue;
+                invalidItems.add(buildFailedItem(item.getProductId(), item.getQuantity(), 0, "INVALID_QUANTITY"));
+            } else if (requested.containsKey(item.getProductId())) {
+                int oldQuantity = requested.get(item.getProductId());
+                requested.put(item.getProductId(), Math.addExact(oldQuantity, item.getQuantity()));
+            } else {
+                requested.put(item.getProductId(), item.getQuantity());
             }
-            requested.merge(item.getProductId(), item.getQuantity(), Math::addExact);
         }
 
-        if (requested.isEmpty()) {
-            complete(responseObserver, failure("No items to reserve", invalid));
-            return;
-        }
-        if (!invalid.isEmpty()) {
-            complete(responseObserver, failure("Invalid quantities", invalid));
+        if (!invalidItems.isEmpty()) {
+            send(responseObserver, reserveFailure("Invalid quantities", invalidItems));
             return;
         }
 
-        // ★ أخذ القفل التشاؤمي على كل المنتجات (مرتبة لمنع Deadlock)
-        List<Long> productIds = requested.keySet().stream().sorted().toList();
-        Map<Long, Stock> stocks = new LinkedHashMap<>();
-        for (Stock stock : stockRepository.findByProductIdInForUpdate(productIds)) {
-            stocks.put(stock.getProductId(), stock);
+        // lock all the products we want to reserve (pessimistic lock)
+        List<Long> productIds = new ArrayList<>(requested.keySet());
+        List<Stock> lockedStocks = stockRepository.findByProductIdInForUpdate(productIds);
+
+        Map<Long, Stock> stockById = new HashMap<>();
+        for (Stock stock : lockedStocks) {
+            stockById.put(stock.getProductId(), stock);
         }
 
-        // التحقق من الكميات وأثناء القفل
-        List<FailedItem> failed = new ArrayList<>();
+        //  Check if all requested quantities are available.. all or nothing.
+        List<FailedItem> failedItems = new ArrayList<>();
         for (Long productId : productIds) {
-            int quantity = requested.get(productId);
-            Stock stock = stocks.get(productId);
+            int wanted = requested.get(productId);
+            Stock stock = stockById.get(productId);
 
             if (stock == null) {
-                failed.add(failedItem(productId, quantity, 0, "UNKNOWN_PRODUCT"));
-            } else if (stock.getQuantity() < quantity) {
-                failed.add(failedItem(productId, quantity, stock.getQuantity(), "INSUFFICIENT_STOCK"));
+                failedItems.add(buildFailedItem(productId, wanted, 0, "UNKNOWN_PRODUCT"));
+            } else if (stock.getQuantity() < wanted) {
+                failedItems.add(buildFailedItem(productId, wanted, stock.getQuantity(), "INSUFFICIENT_STOCK"));
             }
         }
 
-        if (!failed.isEmpty()) {
-            complete(responseObserver, failure("Reservation rejected", failed));
+        if (!failedItems.isEmpty()) {
+            send(responseObserver, reserveFailure("Reservation rejected", failedItems));
             return;
         }
 
-        // الخصم + تسجيل الحجز (القفل لا يزال مأخوذاً)
         for (Long productId : productIds) {
-            int quantity = requested.get(productId);
-            Stock stock = stocks.get(productId);
-            stock.setQuantity(stock.getQuantity() - quantity);
-            reservationRepository.save(new Reservation(orderRef, productId, quantity));
+            int wanted = requested.get(productId);
+            Stock stock = stockById.get(productId);
+
+            stock.setQuantity(stock.getQuantity() - wanted);
+            reservationRepository.save(new Reservation(orderRef, productId, wanted));
         }
 
-        complete(responseObserver, ReserveReply.newBuilder()
+        ReserveReply ok = ReserveReply.newBuilder()
                 .setSuccess(true)
                 .setMessage("Reserved")
-                .build());
+                .build();
+        send(responseObserver, ok);
     }
 
-    // ==================== Release ====================
+    //      Release: release reserved quantities for an order
     @Override
     @Transactional
     public void release(ReleaseRequest request, StreamObserver<ReleaseReply> responseObserver) {
         String orderRef = request.getOrderRef().trim();
         if (orderRef.isEmpty()) {
-            complete(responseObserver, ReleaseReply.newBuilder()
-                    .setSuccess(false)
-                    .setMessage("order_ref is required")
-                    .build());
+            send(responseObserver, releaseReply(false, "order_ref is required"));
             return;
         }
 
-        List<Reservation> reservations =
-                reservationRepository.findByOrderRefOrderByProductIdAsc(orderRef);
-
+        List<Reservation> reservations = reservationRepository.findByOrderRefOrderByProductIdAsc(orderRef);
         if (reservations.isEmpty()) {
-            complete(responseObserver, ReleaseReply.newBuilder()
-                    .setSuccess(false)
-                    .setMessage("Reservation not found")
-                    .build());
+            send(responseObserver, releaseReply(false, "Reservation not found"));
             return;
         }
 
-        List<Reservation> active = reservations.stream()
-                .filter(r -> r.getStatus() == Reservation.Status.ACTIVE)
-                .toList();
+        List<Reservation> activeReservations = new ArrayList<>();
+        for (Reservation r : reservations) {
+            if (r.getStatus() == Reservation.Status.ACTIVE) {
+                activeReservations.add(r);
+            }
+        }
 
-        if (active.isEmpty()) {
-            complete(responseObserver, ReleaseReply.newBuilder()
-                    .setSuccess(true)
-                    .setMessage("Already released")
-                    .build());
+        if (activeReservations.isEmpty()) {
+            send(responseObserver, releaseReply(true, "Already released"));
             return;
         }
 
-        // إعادة الكميات مع قفل تشاؤمي
-        for (Reservation reservation : active) {
-            Stock stock = stockRepository.findByProductIdForUpdate(reservation.getProductId())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Missing stock for product " + reservation.getProductId()));
+        for (Reservation reservation : activeReservations) {
+            // lock the stock row for update to prevent concurrent modifications
+            Stock stock = stockRepository.findByProductIdForUpdate(reservation.getProductId()).orElse(null);
+            if (stock == null) {
+                throw new IllegalStateException("Missing stock for product " + reservation.getProductId());
+            }
 
-            stock.setQuantity(Math.addExact(stock.getQuantity(), reservation.getQuantity()));
+            stock.setQuantity(stock.getQuantity() + reservation.getQuantity());
             reservation.setStatus(Reservation.Status.RELEASED);
         }
 
-        complete(responseObserver, ReleaseReply.newBuilder()
-                .setSuccess(true)
-                .setMessage("Released")
-                .build());
+        send(responseObserver, releaseReply(true, "Released"));
     }
 
-    // ==================== SetStock ====================
+    //      SetStock: set the stock quantity for a product (create or update)
     @Override
     @Transactional
     public void setStock(SetStockRequest request, StreamObserver<SetStockReply> responseObserver) {
         if (request.getQuantity() < 0) {
-            complete(responseObserver, SetStockReply.newBuilder().setSuccess(false).build());
+            send(responseObserver, SetStockReply.newBuilder().setSuccess(false).build());
             return;
         }
 
-        Stock stock = stockRepository.findByProductIdForUpdate(request.getProductId())
-                .orElseGet(() -> stockRepository.save(
-                        new Stock(request.getProductId(), request.getQuantity())));
+        //  lock the stock row for update to prevent concurrent modifications
+        Stock stock = stockRepository.findByProductIdForUpdate(request.getProductId()).orElse(null);
 
-        stock.setQuantity(request.getQuantity());
+        if (stock == null) {
+            stockRepository.save(new Stock(request.getProductId(), request.getQuantity()));
+        } else {
+            stock.setQuantity(request.getQuantity());
+        }
 
-        complete(responseObserver, SetStockReply.newBuilder().setSuccess(true).build());
+        send(responseObserver, SetStockReply.newBuilder().setSuccess(true).build());
     }
 
-    // ==================== Helpers ====================
-    private static FailedItem failedItem(long productId, int requested, int available, String reason) {
+
+    // Sending the response to the client and completing the call (used with all types)
+    private static <T> void send(StreamObserver<T> responseObserver, T reply) {
+        responseObserver.onNext(reply);
+        responseObserver.onCompleted();
+    }
+
+    private static FailedItem buildFailedItem(long productId, int requested, int available, String reason) {
         return FailedItem.newBuilder()
                 .setProductId(productId)
                 .setRequested(requested)
@@ -220,11 +235,7 @@ public class InventoryGrpcService extends InventoryServiceGrpc.InventoryServiceI
                 .build();
     }
 
-    private static ReserveReply failure(String message) {
-        return failure(message, List.of());
-    }
-
-    private static ReserveReply failure(String message, List<FailedItem> failedItems) {
+    private static ReserveReply reserveFailure(String message, List<FailedItem> failedItems) {
         return ReserveReply.newBuilder()
                 .setSuccess(false)
                 .setMessage(message)
@@ -232,8 +243,10 @@ public class InventoryGrpcService extends InventoryServiceGrpc.InventoryServiceI
                 .build();
     }
 
-    private static <T> void complete(StreamObserver<T> responseObserver, T reply) {
-        responseObserver.onNext(reply);
-        responseObserver.onCompleted();
+    private static ReleaseReply releaseReply(boolean success, String message) {
+        return ReleaseReply.newBuilder()
+                .setSuccess(success)
+                .setMessage(message)
+                .build();
     }
 }

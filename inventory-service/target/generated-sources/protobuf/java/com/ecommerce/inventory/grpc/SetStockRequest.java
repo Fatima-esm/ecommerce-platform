@@ -6,7 +6,7 @@ package com.ecommerce.inventory.grpc;
 
 /**
  * <pre>
- *  SetStock 
+ * SetStock 
  * </pre>
  *
  * Protobuf type {@code inventory.SetStockRequest}
@@ -236,7 +236,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *  SetStock 
+   * SetStock 
    * </pre>
    *
    * Protobuf type {@code inventory.SetStockRequest}

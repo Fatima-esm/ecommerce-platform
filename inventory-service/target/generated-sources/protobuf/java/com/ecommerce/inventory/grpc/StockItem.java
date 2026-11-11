@@ -43,7 +43,7 @@ private static final long serialVersionUID = 0L;
   private long productId_ = 0L;
   /**
    * <pre>
-   * رقم المنتج
+   * Product ID
    * </pre>
    *
    * <code>int64 product_id = 1;</code>
@@ -58,7 +58,7 @@ private static final long serialVersionUID = 0L;
   private int quantity_ = 0;
   /**
    * <pre>
-   * الكمية المطلوبة أو المحجوزة
+   * Requested quantity  
    * </pre>
    *
    * <code>int32 quantity = 2;</code>
@@ -421,7 +421,7 @@ private static final long serialVersionUID = 0L;
     private long productId_ ;
     /**
      * <pre>
-     * رقم المنتج
+     * Product ID
      * </pre>
      *
      * <code>int64 product_id = 1;</code>
@@ -433,7 +433,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * رقم المنتج
+     * Product ID
      * </pre>
      *
      * <code>int64 product_id = 1;</code>
@@ -449,7 +449,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * رقم المنتج
+     * Product ID
      * </pre>
      *
      * <code>int64 product_id = 1;</code>
@@ -465,7 +465,7 @@ private static final long serialVersionUID = 0L;
     private int quantity_ ;
     /**
      * <pre>
-     * الكمية المطلوبة أو المحجوزة
+     * Requested quantity  
      * </pre>
      *
      * <code>int32 quantity = 2;</code>
@@ -477,7 +477,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * الكمية المطلوبة أو المحجوزة
+     * Requested quantity  
      * </pre>
      *
      * <code>int32 quantity = 2;</code>
@@ -493,7 +493,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * الكمية المطلوبة أو المحجوزة
+     * Requested quantity  
      * </pre>
      *
      * <code>int32 quantity = 2;</code>

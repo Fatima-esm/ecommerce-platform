@@ -10,7 +10,7 @@ public interface ReserveRequestOrBuilder extends
 
   /**
    * <pre>
-   * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+   * Order reference (e.g., UUID) to make the operation idempotent
    * </pre>
    *
    * <code>string order_ref = 1;</code>
@@ -19,7 +19,7 @@ public interface ReserveRequestOrBuilder extends
   java.lang.String getOrderRef();
   /**
    * <pre>
-   * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+   * Order reference (e.g., UUID) to make the operation idempotent
    * </pre>
    *
    * <code>string order_ref = 1;</code>
@@ -30,7 +30,7 @@ public interface ReserveRequestOrBuilder extends
 
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -39,7 +39,7 @@ public interface ReserveRequestOrBuilder extends
       getItemsList();
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -47,7 +47,7 @@ public interface ReserveRequestOrBuilder extends
   com.ecommerce.inventory.grpc.StockItem getItems(int index);
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -55,7 +55,7 @@ public interface ReserveRequestOrBuilder extends
   int getItemsCount();
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -64,7 +64,7 @@ public interface ReserveRequestOrBuilder extends
       getItemsOrBuilderList();
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>

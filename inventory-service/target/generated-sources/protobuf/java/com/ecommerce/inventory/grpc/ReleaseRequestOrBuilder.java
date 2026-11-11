@@ -10,7 +10,7 @@ public interface ReleaseRequestOrBuilder extends
 
   /**
    * <pre>
-   * نفس المرجع الذي استُخدم في Reserve
+   * The same reference used in Reserve
    * </pre>
    *
    * <code>string order_ref = 1;</code>
@@ -19,7 +19,7 @@ public interface ReleaseRequestOrBuilder extends
   java.lang.String getOrderRef();
   /**
    * <pre>
-   * نفس المرجع الذي استُخدم في Reserve
+   * The same reference used in Reserve
    * </pre>
    *
    * <code>string order_ref = 1;</code>

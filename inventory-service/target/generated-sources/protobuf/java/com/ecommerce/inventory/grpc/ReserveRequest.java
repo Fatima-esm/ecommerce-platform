@@ -6,7 +6,7 @@ package com.ecommerce.inventory.grpc;
 
 /**
  * <pre>
- *  Reserve 
+ * Reserve 
  * </pre>
  *
  * Protobuf type {@code inventory.ReserveRequest}
@@ -50,7 +50,7 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object orderRef_ = "";
   /**
    * <pre>
-   * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+   * Order reference (e.g., UUID) to make the operation idempotent
    * </pre>
    *
    * <code>string order_ref = 1;</code>
@@ -71,7 +71,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+   * Order reference (e.g., UUID) to make the operation idempotent
    * </pre>
    *
    * <code>string order_ref = 1;</code>
@@ -97,7 +97,7 @@ private static final long serialVersionUID = 0L;
   private java.util.List<com.ecommerce.inventory.grpc.StockItem> items_;
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -108,7 +108,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -120,7 +120,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -131,7 +131,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -142,7 +142,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * قائمة المنتجات والكميات المراد حجزها
+   * List of products and quantities to reserve
    * </pre>
    *
    * <code>repeated .inventory.StockItem items = 2;</code>
@@ -324,7 +324,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *  Reserve 
+   * Reserve 
    * </pre>
    *
    * Protobuf type {@code inventory.ReserveRequest}
@@ -558,7 +558,7 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object orderRef_ = "";
     /**
      * <pre>
-     * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+     * Order reference (e.g., UUID) to make the operation idempotent
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -578,7 +578,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+     * Order reference (e.g., UUID) to make the operation idempotent
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -599,7 +599,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+     * Order reference (e.g., UUID) to make the operation idempotent
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -616,7 +616,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+     * Order reference (e.g., UUID) to make the operation idempotent
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -630,7 +630,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * مرجع الطلب (مثلاً UUID) لجعل العملية idempotent
+     * Order reference (e.g., UUID) to make the operation idempotent
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -661,7 +661,7 @@ private static final long serialVersionUID = 0L;
 
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -675,7 +675,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -689,7 +689,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -703,7 +703,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -724,7 +724,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -742,7 +742,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -762,7 +762,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -783,7 +783,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -801,7 +801,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -819,7 +819,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -838,7 +838,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -855,7 +855,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -872,7 +872,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -883,7 +883,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -897,7 +897,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -912,7 +912,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -923,7 +923,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>
@@ -935,7 +935,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * قائمة المنتجات والكميات المراد حجزها
+     * List of products and quantities to reserve
      * </pre>
      *
      * <code>repeated .inventory.StockItem items = 2;</code>

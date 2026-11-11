@@ -28,7 +28,7 @@ public interface FailedItemOrBuilder extends
 
   /**
    * <pre>
-   * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+   * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
    * </pre>
    *
    * <code>string reason = 4;</code>
@@ -37,7 +37,7 @@ public interface FailedItemOrBuilder extends
   java.lang.String getReason();
   /**
    * <pre>
-   * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+   * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
    * </pre>
    *
    * <code>string reason = 4;</code>

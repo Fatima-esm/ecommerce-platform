@@ -10,7 +10,7 @@ public interface StockItemOrBuilder extends
 
   /**
    * <pre>
-   * رقم المنتج
+   * Product ID
    * </pre>
    *
    * <code>int64 product_id = 1;</code>
@@ -20,7 +20,7 @@ public interface StockItemOrBuilder extends
 
   /**
    * <pre>
-   * الكمية المطلوبة أو المحجوزة
+   * Requested quantity  
    * </pre>
    *
    * <code>int32 quantity = 2;</code>

@@ -29,7 +29,7 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('api-token')->plainTextToken;
-        ReadYourWrites::markToken($token); // التوكن الجديد قد لا يكون وصل للنسخة بعد
+        ReadYourWrites::markToken($token); 
 
         return response()->json([
             'message' => 'Registered successfully',
@@ -42,7 +42,7 @@ class AuthController extends Controller
     {
         $key = 'login:' . $request->ip();
 
-        // Rate Limiting: 5 محاولات كل 15 دقيقة
+        // Rate Limiting
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
             return ApiErrors::json(
@@ -62,7 +62,7 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            RateLimiter::hit($key, 900); // 15 دقيقة
+            RateLimiter::hit($key, 900); // 15 min
             throw ValidationException::withMessages([
                 'email' => ['Invalid credentials.'],
             ]);
@@ -71,7 +71,7 @@ class AuthController extends Controller
         RateLimiter::clear($key);
 
         $token = $user->createToken('api-token')->plainTextToken;
-        ReadYourWrites::markToken($token); // التوكن الجديد قد لا يكون وصل للنسخة بعد
+        ReadYourWrites::markToken($token); 
 
         return response()->json([
             'message' => 'Logged in successfully',

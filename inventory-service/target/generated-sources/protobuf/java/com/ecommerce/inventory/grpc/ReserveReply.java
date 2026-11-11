@@ -96,7 +96,7 @@ private static final long serialVersionUID = 0L;
   private java.util.List<com.ecommerce.inventory.grpc.FailedItem> failedItems_;
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -107,7 +107,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -119,7 +119,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -130,7 +130,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -141,7 +141,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -692,7 +692,7 @@ private static final long serialVersionUID = 0L;
 
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -706,7 +706,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -720,7 +720,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -734,7 +734,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -755,7 +755,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -773,7 +773,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -793,7 +793,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -814,7 +814,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -832,7 +832,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -850,7 +850,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -869,7 +869,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -886,7 +886,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -903,7 +903,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -914,7 +914,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -928,7 +928,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -943,7 +943,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -954,7 +954,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -966,7 +966,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * فارغ إذا نجح الحجز
+     * Empty if reservation succeeds
      * </pre>
      *
      * <code>repeated .inventory.FailedItem failed_items = 3;</code>

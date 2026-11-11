@@ -43,7 +43,7 @@ private static final long serialVersionUID = 0L;
   private boolean found_ = false;
   /**
    * <pre>
-   * هل المنتج موجود في المستودع؟
+   * Is the product found in the warehouse?
    * </pre>
    *
    * <code>bool found = 1;</code>
@@ -58,7 +58,7 @@ private static final long serialVersionUID = 0L;
   private int available_ = 0;
   /**
    * <pre>
-   * الكمية المتوفرة حالياً
+   * Current available quantity
    * </pre>
    *
    * <code>int32 available = 2;</code>
@@ -421,7 +421,7 @@ private static final long serialVersionUID = 0L;
     private boolean found_ ;
     /**
      * <pre>
-     * هل المنتج موجود في المستودع؟
+     * Is the product found in the warehouse?
      * </pre>
      *
      * <code>bool found = 1;</code>
@@ -433,7 +433,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * هل المنتج موجود في المستودع؟
+     * Is the product found in the warehouse?
      * </pre>
      *
      * <code>bool found = 1;</code>
@@ -449,7 +449,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * هل المنتج موجود في المستودع؟
+     * Is the product found in the warehouse?
      * </pre>
      *
      * <code>bool found = 1;</code>
@@ -465,7 +465,7 @@ private static final long serialVersionUID = 0L;
     private int available_ ;
     /**
      * <pre>
-     * الكمية المتوفرة حالياً
+     * Current available quantity
      * </pre>
      *
      * <code>int32 available = 2;</code>
@@ -477,7 +477,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * الكمية المتوفرة حالياً
+     * Current available quantity
      * </pre>
      *
      * <code>int32 available = 2;</code>
@@ -493,7 +493,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * الكمية المتوفرة حالياً
+     * Current available quantity
      * </pre>
      *
      * <code>int32 available = 2;</code>

@@ -6,7 +6,7 @@ package com.ecommerce.inventory.grpc;
 
 /**
  * <pre>
- *  Release 
+ * Release 
  * </pre>
  *
  * Protobuf type {@code inventory.ReleaseRequest}
@@ -49,7 +49,7 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object orderRef_ = "";
   /**
    * <pre>
-   * نفس المرجع الذي استُخدم في Reserve
+   * The same reference used in Reserve
    * </pre>
    *
    * <code>string order_ref = 1;</code>
@@ -70,7 +70,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * نفس المرجع الذي استُخدم في Reserve
+   * The same reference used in Reserve
    * </pre>
    *
    * <code>string order_ref = 1;</code>
@@ -249,7 +249,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *  Release 
+   * Release 
    * </pre>
    *
    * Protobuf type {@code inventory.ReleaseRequest}
@@ -424,7 +424,7 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object orderRef_ = "";
     /**
      * <pre>
-     * نفس المرجع الذي استُخدم في Reserve
+     * The same reference used in Reserve
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -444,7 +444,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * نفس المرجع الذي استُخدم في Reserve
+     * The same reference used in Reserve
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -465,7 +465,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * نفس المرجع الذي استُخدم في Reserve
+     * The same reference used in Reserve
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -482,7 +482,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * نفس المرجع الذي استُخدم في Reserve
+     * The same reference used in Reserve
      * </pre>
      *
      * <code>string order_ref = 1;</code>
@@ -496,7 +496,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * نفس المرجع الذي استُخدم في Reserve
+     * The same reference used in Reserve
      * </pre>
      *
      * <code>string order_ref = 1;</code>

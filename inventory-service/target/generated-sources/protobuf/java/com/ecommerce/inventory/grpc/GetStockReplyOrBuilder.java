@@ -10,7 +10,7 @@ public interface GetStockReplyOrBuilder extends
 
   /**
    * <pre>
-   * هل المنتج موجود في المستودع؟
+   * Is the product found in the warehouse?
    * </pre>
    *
    * <code>bool found = 1;</code>
@@ -20,7 +20,7 @@ public interface GetStockReplyOrBuilder extends
 
   /**
    * <pre>
-   * الكمية المتوفرة حالياً
+   * Current available quantity
    * </pre>
    *
    * <code>int32 available = 2;</code>

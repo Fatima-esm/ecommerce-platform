@@ -3,9 +3,6 @@ package com.ecommerce.inventory.grpc;
 import static io.grpc.MethodDescriptor.generateFullMethodName;
 
 /**
- * <pre>
- * ===== تعريف الخدمة =====
- * </pre>
  */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.68.1)",
@@ -187,15 +184,12 @@ public final class InventoryServiceGrpc {
   }
 
   /**
-   * <pre>
-   * ===== تعريف الخدمة =====
-   * </pre>
    */
   public interface AsyncService {
 
     /**
      * <pre>
-     * 1. معرفة الكمية المتوفرة لمنتج معين
+     * 1. Get stock quantity for a specific product
      * </pre>
      */
     default void getStock(com.ecommerce.inventory.grpc.GetStockRequest request,
@@ -205,7 +199,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 2. حجز كميات عدة منتجات لطلب واحد (كل أو لا شيء)
+     * 2. Reserve quantities for multiple products in an order (all or nothing)
      * </pre>
      */
     default void reserve(com.ecommerce.inventory.grpc.ReserveRequest request,
@@ -215,7 +209,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 3. إرجاع الكميات المحجوزة إذا فشل إنشاء الطلب
+     * 3. Release reserved quantities if order creation fails
      * </pre>
      */
     default void release(com.ecommerce.inventory.grpc.ReleaseRequest request,
@@ -225,7 +219,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 4. ضبط الكمية الابتدائية (مفيد عند إضافة منتج جديد)
+     * 4. Set initial stock quantity (when adding a new product)
      * </pre>
      */
     default void setStock(com.ecommerce.inventory.grpc.SetStockRequest request,
@@ -236,9 +230,6 @@ public final class InventoryServiceGrpc {
 
   /**
    * Base class for the server implementation of the service InventoryService.
-   * <pre>
-   * ===== تعريف الخدمة =====
-   * </pre>
    */
   public static abstract class InventoryServiceImplBase
       implements io.grpc.BindableService, AsyncService {
@@ -250,9 +241,6 @@ public final class InventoryServiceGrpc {
 
   /**
    * A stub to allow clients to do asynchronous rpc calls to service InventoryService.
-   * <pre>
-   * ===== تعريف الخدمة =====
-   * </pre>
    */
   public static final class InventoryServiceStub
       extends io.grpc.stub.AbstractAsyncStub<InventoryServiceStub> {
@@ -269,7 +257,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 1. معرفة الكمية المتوفرة لمنتج معين
+     * 1. Get stock quantity for a specific product
      * </pre>
      */
     public void getStock(com.ecommerce.inventory.grpc.GetStockRequest request,
@@ -280,7 +268,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 2. حجز كميات عدة منتجات لطلب واحد (كل أو لا شيء)
+     * 2. Reserve quantities for multiple products in an order (all or nothing)
      * </pre>
      */
     public void reserve(com.ecommerce.inventory.grpc.ReserveRequest request,
@@ -291,7 +279,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 3. إرجاع الكميات المحجوزة إذا فشل إنشاء الطلب
+     * 3. Release reserved quantities if order creation fails
      * </pre>
      */
     public void release(com.ecommerce.inventory.grpc.ReleaseRequest request,
@@ -302,7 +290,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 4. ضبط الكمية الابتدائية (مفيد عند إضافة منتج جديد)
+     * 4. Set initial stock quantity (when adding a new product)
      * </pre>
      */
     public void setStock(com.ecommerce.inventory.grpc.SetStockRequest request,
@@ -314,9 +302,6 @@ public final class InventoryServiceGrpc {
 
   /**
    * A stub to allow clients to do synchronous rpc calls to service InventoryService.
-   * <pre>
-   * ===== تعريف الخدمة =====
-   * </pre>
    */
   public static final class InventoryServiceBlockingStub
       extends io.grpc.stub.AbstractBlockingStub<InventoryServiceBlockingStub> {
@@ -333,7 +318,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 1. معرفة الكمية المتوفرة لمنتج معين
+     * 1. Get stock quantity for a specific product
      * </pre>
      */
     public com.ecommerce.inventory.grpc.GetStockReply getStock(com.ecommerce.inventory.grpc.GetStockRequest request) {
@@ -343,7 +328,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 2. حجز كميات عدة منتجات لطلب واحد (كل أو لا شيء)
+     * 2. Reserve quantities for multiple products in an order (all or nothing)
      * </pre>
      */
     public com.ecommerce.inventory.grpc.ReserveReply reserve(com.ecommerce.inventory.grpc.ReserveRequest request) {
@@ -353,7 +338,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 3. إرجاع الكميات المحجوزة إذا فشل إنشاء الطلب
+     * 3. Release reserved quantities if order creation fails
      * </pre>
      */
     public com.ecommerce.inventory.grpc.ReleaseReply release(com.ecommerce.inventory.grpc.ReleaseRequest request) {
@@ -363,7 +348,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 4. ضبط الكمية الابتدائية (مفيد عند إضافة منتج جديد)
+     * 4. Set initial stock quantity (when adding a new product)
      * </pre>
      */
     public com.ecommerce.inventory.grpc.SetStockReply setStock(com.ecommerce.inventory.grpc.SetStockRequest request) {
@@ -374,9 +359,6 @@ public final class InventoryServiceGrpc {
 
   /**
    * A stub to allow clients to do ListenableFuture-style rpc calls to service InventoryService.
-   * <pre>
-   * ===== تعريف الخدمة =====
-   * </pre>
    */
   public static final class InventoryServiceFutureStub
       extends io.grpc.stub.AbstractFutureStub<InventoryServiceFutureStub> {
@@ -393,7 +375,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 1. معرفة الكمية المتوفرة لمنتج معين
+     * 1. Get stock quantity for a specific product
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<com.ecommerce.inventory.grpc.GetStockReply> getStock(
@@ -404,7 +386,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 2. حجز كميات عدة منتجات لطلب واحد (كل أو لا شيء)
+     * 2. Reserve quantities for multiple products in an order (all or nothing)
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<com.ecommerce.inventory.grpc.ReserveReply> reserve(
@@ -415,7 +397,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 3. إرجاع الكميات المحجوزة إذا فشل إنشاء الطلب
+     * 3. Release reserved quantities if order creation fails
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<com.ecommerce.inventory.grpc.ReleaseReply> release(
@@ -426,7 +408,7 @@ public final class InventoryServiceGrpc {
 
     /**
      * <pre>
-     * 4. ضبط الكمية الابتدائية (مفيد عند إضافة منتج جديد)
+     * 4. Set initial stock quantity (when adding a new product)
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<com.ecommerce.inventory.grpc.SetStockReply> setStock(

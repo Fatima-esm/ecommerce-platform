@@ -147,7 +147,7 @@ services:
     volumes:
       - ./laravel-app:/var/www/html
       - uploads:/var/www/html/storage/app/public
-
+#Adminer:  http://127.0.0.1:8089
   adminer:
     image: adminer:4
     container_name: adminer

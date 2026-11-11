@@ -78,7 +78,7 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object reason_ = "";
   /**
    * <pre>
-   * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+   * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
    * </pre>
    *
    * <code>string reason = 4;</code>
@@ -99,7 +99,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+   * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
    * </pre>
    *
    * <code>string reason = 4;</code>
@@ -615,7 +615,7 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object reason_ = "";
     /**
      * <pre>
-     * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+     * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
      * </pre>
      *
      * <code>string reason = 4;</code>
@@ -635,7 +635,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+     * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
      * </pre>
      *
      * <code>string reason = 4;</code>
@@ -656,7 +656,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+     * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
      * </pre>
      *
      * <code>string reason = 4;</code>
@@ -673,7 +673,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+     * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
      * </pre>
      *
      * <code>string reason = 4;</code>
@@ -687,7 +687,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * مثل: INSUFFICIENT_STOCK أو UNKNOWN_PRODUCT
+     * INSUFFICIENT_STOCK | UNKNOWN_PRODUCT
      * </pre>
      *
      * <code>string reason = 4;</code>

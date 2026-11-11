@@ -28,7 +28,7 @@ public interface ReserveReplyOrBuilder extends
 
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -37,7 +37,7 @@ public interface ReserveReplyOrBuilder extends
       getFailedItemsList();
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -45,7 +45,7 @@ public interface ReserveReplyOrBuilder extends
   com.ecommerce.inventory.grpc.FailedItem getFailedItems(int index);
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -53,7 +53,7 @@ public interface ReserveReplyOrBuilder extends
   int getFailedItemsCount();
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
@@ -62,7 +62,7 @@ public interface ReserveReplyOrBuilder extends
       getFailedItemsOrBuilderList();
   /**
    * <pre>
-   * فارغ إذا نجح الحجز
+   * Empty if reservation succeeds
    * </pre>
    *
    * <code>repeated .inventory.FailedItem failed_items = 3;</code>
