@@ -1,0 +1,9 @@
+=== 2_indexes ===
+ALL          p50=   710.2  p95=  1074.5  p99=  1408.0  (ms)
+list         p50=   636.9  p95=   894.2  p99=  1375.9  (ms)
+detail       p50=   763.8  p95=  1065.4  p99=  1215.8  (ms)
+search       p50=   658.4  p95=   844.2  p99=  1394.3  (ms)
+my_orders    p50=   944.1  p95=  1194.3  p99=  1654.1  (ms)
+requests/s  = 25.0
+failed      = 0.00%
+304 replies = 0

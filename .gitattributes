@@ -1,0 +1,4 @@
+# تجنّب مشاكل نهايات الأسطر (CRLF) على Windows داخل حاويات Linux
+*.sh   text eol=lf
+*.conf text eol=lf
+*.yml  text eol=lf

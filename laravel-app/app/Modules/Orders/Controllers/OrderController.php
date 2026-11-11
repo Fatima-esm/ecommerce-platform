@@ -4,7 +4,7 @@ namespace App\Modules\Orders\Controllers;
 
 use App\Modules\Orders\Models\Order;
 use App\Modules\Orders\Models\OrderItem;
-use App\Modules\Products\Models\Product;
+use App\Modules\Products\Services\ProductCatalog;
 use App\Services\InventoryGrpcClient;
 use App\Support\ApiErrors;
 use App\Support\ApiResponse;
@@ -18,8 +18,10 @@ use Illuminate\Support\Facades\Event;
 
 class OrderController extends Controller
 {
-    public function __construct(private InventoryGrpcClient $inventory)
-    {
+    public function __construct(
+        private InventoryGrpcClient $inventory,
+        private ProductCatalog $catalog,
+    ) {
     }
 
     public function index(Request $request)
@@ -68,11 +70,24 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
+        // ملاحظة أداء: أزلنا قاعدة exists:products,id لأنها تنفّذ استعلاماً لكل صنف (N+1)،
+        // وبدّلناها باستعلام واحد whereIn عبر وحدة المنتجات.
         $data = $request->validate([
-            'items'              => 'required|array|min:1',
-            'items.*.product_id' => 'required|integer|exists:products,id',
+            'items'              => 'required|array|min:1|max:100',
+            'items.*.product_id' => 'required|integer|min:1',
             'items.*.quantity'   => 'required|integer|min:1',
         ]);
+
+        $ids = collect($data['items'])->pluck('product_id')->unique()->values()->all();
+        $products = $this->catalog->findManyForOrder($ids);
+
+        $missing = array_values(array_diff($ids, $products->keys()->all()));
+        if ($missing) {
+            return ApiErrors::json(422, 'VALIDATION_FAILED', 'The given data was invalid.', [
+                'items' => ['One or more products do not exist.'],
+                'missing_product_ids' => $missing,
+            ]);
+        }
 
         $orderRef = (string) Str::uuid();
         $reserveItems = [];
@@ -80,7 +95,7 @@ class OrderController extends Controller
         $total = 0;
 
         foreach ($data['items'] as $row) {
-            $product = Product::findOrFail($row['product_id']);
+            $product = $products[(int) $row['product_id']];
             $qty = (int) $row['quantity'];
             $total += $product->price * $qty;
 
@@ -120,14 +135,16 @@ class OrderController extends Controller
                     'status'       => 'pending',
                 ]);
 
-                foreach ($lines as $line) {
-                    OrderItem::create([
-                        'order_id'   => $order->id,
-                        'product_id' => $line['product_id'],
-                        'quantity'   => $line['quantity'],
-                        'price'      => $line['price'],
-                    ]);
-                }
+                // إدراج واحد لكل الأصناف بدل إدراج لكل صنف
+                $now = now();
+                OrderItem::insert(array_map(fn ($line) => [
+                    'order_id'   => $order->id,
+                    'product_id' => $line['product_id'],
+                    'quantity'   => $line['quantity'],
+                    'price'      => $line['price'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ], $lines));
 
                 return $order->load('items.product');
             });

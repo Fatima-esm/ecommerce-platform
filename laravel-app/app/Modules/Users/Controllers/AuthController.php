@@ -4,6 +4,7 @@ namespace App\Modules\Users\Controllers;
 
 use App\Models\User;
 use App\Support\ApiErrors;
+use App\Support\ReadYourWrites;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -28,6 +29,7 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('api-token')->plainTextToken;
+        ReadYourWrites::markToken($token); // التوكن الجديد قد لا يكون وصل للنسخة بعد
 
         return response()->json([
             'message' => 'Registered successfully',
@@ -69,6 +71,7 @@ class AuthController extends Controller
         RateLimiter::clear($key);
 
         $token = $user->createToken('api-token')->plainTextToken;
+        ReadYourWrites::markToken($token); // التوكن الجديد قد لا يكون وصل للنسخة بعد
 
         return response()->json([
             'message' => 'Logged in successfully',

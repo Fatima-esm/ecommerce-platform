@@ -1,0 +1,35 @@
+
+1. قائمة المنتجات (الصفحة الأولى)
+  SELECT * FROM products ORDER BY created_at DESC, id DESC LIMIT 20
+  scan: ->  Index Scan using products_created_id_idx on products
+  Execution Time: 0.094 ms
+
+2. قائمة المنتجات + تصنيف
+  SELECT * FROM products WHERE category = 'phones' ORDER BY created_at DESC, id DESC LIMIT 20
+  scan: ->  Index Scan using products_category_created_id_idx on products
+  Execution Time: 0.085 ms
+
+3. البحث بالاسم
+  SELECT * FROM products WHERE name ILIKE '%phone 12%' ORDER BY created_at DESC, id DESC LIMIT 20
+  scan: ->  Bitmap Heap Scan on products
+  Execution Time: 2.181 ms
+
+4. طلباتي (مستخدم واحد)
+  SELECT * FROM orders WHERE user_id = 10038 ORDER BY created_at DESC
+  scan: ->  Bitmap Heap Scan on orders
+  Execution Time: 0.231 ms
+
+5. طلبات الإدارة حسب الحالة
+  SELECT * FROM orders WHERE status = 'pending' ORDER BY created_at DESC LIMIT 20
+  scan: ->  Index Scan using orders_status_created_idx on orders
+  Execution Time: 0.103 ms
+
+6. أصناف مجموعة طلبات (eager loading)
+  SELECT * FROM order_items WHERE order_id IN (1048,1123,1768,1889,3559,7326,10840,34615,36004,36924,42642,51415,52061,52527,53636,56334,59173,60118,62558,63663)
+  scan: Index Scan using order_items_order_id_idx on order_items
+  Execution Time: 0.341 ms
+
+7. عدّ الصفحات (paginate count)
+  SELECT count(*) FROM orders WHERE status = 'pending'
+  scan: ->  Bitmap Heap Scan on orders
+  Execution Time: 21.927 ms

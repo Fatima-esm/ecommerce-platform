@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ApiErrors;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,14 +10,13 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureUserIsAdmin
 {
     /**
-     * Handle an incoming request.
-     *
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-       if (!$request->user() || $request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Forbidden'], 403);
+        if (!$request->user() || $request->user()->role !== 'admin') {
+            // نفس صيغة الأخطاء الموحدة في كل الواجهات
+            return ApiErrors::json(403, 'FORBIDDEN', 'Admin privileges are required.');
         }
 
         return $next($request);
