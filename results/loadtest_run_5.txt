@@ -1,9 +1,0 @@
-=== 5_replica ===
-ALL          p50=   551.0  p95=   921.6  p99=  1113.5  (ms)
-list         p50=   446.8  p95=   766.1  p99=  1391.0  (ms)
-detail       p50=   610.7  p95=   930.0  p99=  1045.2  (ms)
-search       p50=   435.9  p95=   717.4  p99=   763.7  (ms)
-my_orders    p50=   787.9  p95=  1052.0  p99=  1175.2  (ms)
-requests/s  = 31.8
-failed      = 0.00%
-304 replies = 188

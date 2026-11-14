@@ -7,16 +7,8 @@ services:
       POSTGRES_DB: shop
       POSTGRES_USER: shop
       POSTGRES_PASSWORD: shop
-    # القاعدة الأساسية (الكتابة) — جاهزة للتكرار نحو نسخة القراءة
-    command:
-      - postgres
-      - -c
-      - hba_file=/etc/postgresql/pg_hba.conf   # يسمح باتصال replication
-      - -c
-      - wal_keep_size=512MB                    # يحتفظ بالـ WAL كي لا تفقد النسخة المتأخرة تزامنها
     volumes:
       - laravel-db-data:/var/lib/postgresql/data
-      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U shop -d shop"]
       interval: 5s
@@ -24,54 +16,6 @@ services:
       retries: 10
     ports:
       - "5432:5432"
-
-  # نسخة القراءة (Read Replica): نسخة حيّة للقراءة فقط، تتزامن تلقائياً (streaming replication)
-  laravel-db-replica:
-    image: postgres:16-alpine
-    container_name: laravel-db-replica
-    environment:
-      POSTGRES_DB: shop
-      POSTGRES_USER: shop
-      POSTGRES_PASSWORD: shop
-      PRIMARY_HOST: laravel-db
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        set -e
-        PGDATA=/var/lib/postgresql/data
-        if [ ! -s "$$PGDATA/PG_VERSION" ]; then
-          echo "[replica] taking base backup from $$PRIMARY_HOST ..."
-          mkdir -p "$$PGDATA" && rm -rf "$$PGDATA"/*
-          chown -R postgres:postgres "$$PGDATA" && chmod 700 "$$PGDATA"
-          PGPASSWORD="$$POSTGRES_PASSWORD" su-exec postgres pg_basebackup \
-            -h "$$PRIMARY_HOST" -U "$$POSTGRES_USER" -D "$$PGDATA" -R -X stream -c fast
-        fi
-        exec docker-entrypoint.sh postgres -c hot_standby=on
-    volumes:
-      - laravel-db-replica-data:/var/lib/postgresql/data
-    depends_on:
-      laravel-db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shop -d shop"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-    ports:
-      - "5434:5432"
-
-  # Redis: التخزين المؤقت في الخادم (حد أقصى للذاكرة + إخلاء الأقل استخداماً)
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru", "--save", ""]
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    ports:
-      - "6379:6379"
 
   # قاعدة بيانات خدمة المستودع
   inventory-db:
@@ -104,7 +48,7 @@ services:
       inventory-db:
         condition: service_healthy
     ports:
-      - "9090:9090"   # gRPC port
+      - "9090:9090"
 
   # التطبيق الأساسي (Laravel) -> http://127.0.0.1:8088
   laravel:
@@ -120,34 +64,22 @@ services:
       DB_DATABASE: shop
       DB_USERNAME: shop
       DB_PASSWORD: shop
-      DB_READ_HOST: laravel-db-replica      # نسخة القراءة (تُستعمل فقط إذا PERF_READ_REPLICA=true)
-      REDIS_HOST: redis
-      CACHE_STORE: redis
-      # ---- المتطلب الثالث: كل تحسين له مفتاح مستقل (للقياس قبل/بعد) ----
-      # مثال خط الأساس:  PERF_CACHE=false PERF_ETAG=false PERF_READ_REPLICA=false docker compose up -d laravel
-      PERF_CACHE: "${PERF_CACHE:-true}"
-      PERF_ETAG: "${PERF_ETAG:-true}"
-      PERF_READ_REPLICA: "${PERF_READ_REPLICA:-true}"
-      PERF_DEBUG_HEADERS: "${PERF_DEBUG_HEADERS:-true}"   # أوقفها أثناء اختبار الحمل
       INVENTORY_GRPC_HOST: inventory
       INVENTORY_GRPC_PORT: 9090
       INVENTORY_GRPC_TIMEOUT: 3
-      PHP_CLI_SERVER_WORKERS: "4"   # بدونه يعالج الخادم طلباً واحداً في كل مرة
+      PHP_CLI_SERVER_WORKERS: "4"
     depends_on:
       laravel-db:
-        condition: service_healthy
-      laravel-db-replica:
-        condition: service_healthy
-      redis:
         condition: service_healthy
       inventory:
         condition: service_started
     ports:
-      - "8088:8000"   # المنفذ 8088 على جهازك -> المنفذ 8000 داخل الحاوية (الذي يشغّله CMD في Dockerfile)
+      - "8088:8000"
     volumes:
       - ./laravel-app:/var/www/html
       - uploads:/var/www/html/storage/app/public
-#Adminer:  http://127.0.0.1:8089
+
+  # واجهة قواعد البيانات (بديل phpMyAdmin)
   adminer:
     image: adminer:4
     container_name: adminer
@@ -155,10 +87,8 @@ services:
       - "8089:8080"
     depends_on:
       - laravel-db
-      - laravel-db-replica
-      
+
 volumes:
   laravel-db-data:
-  laravel-db-replica-data:
   inventory-db-data:
   uploads:

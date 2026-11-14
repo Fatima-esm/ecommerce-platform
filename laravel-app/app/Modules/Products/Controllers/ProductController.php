@@ -3,90 +3,48 @@
 namespace App\Modules\Products\Controllers;
 
 use App\Modules\Products\Models\Product;
-use App\Modules\Products\Services\ProductCache;
 use App\Support\ApiErrors;
-use App\Support\ReadYourWrites;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    public function __construct(private ProductCache $cache)
-    {
-    }
-
-    // عرض المنتجات مع Pagination + Filter  (عام، مخزَّن في Redis)
+    // قائمة المنتجات مع Pagination + Filter
     public function index(Request $request)
     {
-        $page = max(1, (int) $request->query('page', 1));
-        $filters = $request->only(['category', 'search']);
-        $key = $this->cache->listKey($filters, $page);
+        $query = Product::query();
 
-        // بعد تعديل حديث نقرأ من الأساسية كي لا نخزّن بيانات قديمة من النسخة المتأخرة
-        $primary = ReadYourWrites::productsRecentlyWritten();
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
 
-        $payload = $this->cache->remember(
-            $key,
-            (int) config('performance.list_ttl'),
-            function () use ($request, $primary) {
-                $query = Product::query();
+        if ($request->filled('search')) {
+            $term = addcslashes((string) $request->search, '\\%_');
+            $query->where('name', 'ilike', '%' . $term . '%');
+        }
 
-                if ($primary) {
-                    $query->useWritePdo();
-                }
+        $products = $query->latest()->orderByDesc('id')->paginate(20);
 
-                if ($request->filled('category')) {
-                    $query->where('category', $request->category);
-                }
-
-                if ($request->filled('search')) {
-                    // ILIKE + فهرس trigram؛ نهرّب % و _ حتى لا يعاملها كرموز بحث
-                    $term = addcslashes((string) $request->search, '\\%_');
-                    $query->where('name', 'ilike', '%' . $term . '%');
-                }
-
-                // id كمعيار ثانٍ يجعل ترتيب الصفحات ثابتاً عند تساوي created_at
-                return $query->latest()->orderByDesc('id')->paginate(20)->toArray();
-            },
-            $state
-        );
-
-        $request->attributes->set('x_cache', $state);
-
-        return response()->json($payload);
+        return response()->json($products);
     }
 
-    // عرض منتج واحد: بيانات المنتج من Redis، والكمية حيّة من المستودع دائماً
-    public function show(Request $request, int $product)
+    // تفاصيل منتج + الكمية من خدمة المستودع عبر gRPC
+    public function show(int $product)
     {
-        $primary = ReadYourWrites::productsRecentlyWritten();
+        $model = Product::find($product);
 
-        $payload = $this->cache->remember(
-            $this->cache->detailKey($product),
-            (int) config('performance.product_ttl'),
-            function () use ($product, $primary) {
-                $query = Product::query();
-                if ($primary) {
-                    $query->useWritePdo();
-                }
-
-                return $query->find($product)?->toArray();
-            },
-            $state
-        );
-
-        $request->attributes->set('x_cache', $state);
-
-        if ($payload === null) {
+        if (!$model) {
             return ApiErrors::json(404, 'NOT_FOUND', 'Product not found');
         }
 
+        $payload = $model->toArray();
+
         try {
             $stock = app(\App\Services\InventoryGrpcClient::class)
-                ->getStock($payload['id']);
+                ->getStock($model->id);
 
-            $payload['stock'] = $stock['found'] ?? false
+            $payload['stock'] = ($stock['found'] ?? false)
                 ? ($stock['available'] ?? 0)
                 : 0;
             $payload['stockStatus'] = 'OK';
@@ -95,7 +53,7 @@ class ProductController extends Controller
             $payload['stockStatus'] = 'UNKNOWN';
         }
 
-        return response()->json($payload);    
+        return response()->json($payload);
     }
 
     // إضافة منتج مع صورة (Admin فقط)
@@ -107,7 +65,7 @@ class ProductController extends Controller
             'price'       => 'required|numeric|min:0',
             'category'    => 'nullable|string|max:100',
             'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'stock'       => 'nullable|integer|min:0', // المخزون الابتدائي
+            'stock'       => 'nullable|integer|min:0',
         ]);
 
         if ($request->hasFile('image')) {
@@ -117,7 +75,6 @@ class ProductController extends Controller
         unset($data['image']);
 
         $product = Product::create($data);
-        $this->cache->afterWrite($product->id);
 
         $initialStock = (int) $request->input('stock', 0);
 
@@ -126,9 +83,14 @@ class ProductController extends Controller
                 app(\App\Services\InventoryGrpcClient::class)
                     ->setStock($product->id, $initialStock);
             } catch (\Throwable $e) {
-                return ApiErrors::json(201, 'STOCK_SYNC_FAILED', 'Product created but stock sync failed', ['product' => $product]);
+                return ApiErrors::json(
+                    201,
+                    'STOCK_SYNC_FAILED',
+                    'Product created but stock sync failed',
+                    ['product' => $product]
+                );
             }
-        }    
+        }
 
         return response()->json([
             'message' => 'Product created successfully',
@@ -156,7 +118,6 @@ class ProductController extends Controller
 
         unset($data['image']);
         $product->update($data);
-        $this->cache->afterWrite($product->id);
 
         return response()->json([
             'message' => 'Product updated successfully',
@@ -172,12 +133,11 @@ class ProductController extends Controller
         }
 
         $product->delete();
-        $this->cache->afterWrite($product->id);
 
         return response()->json(['message' => 'Product deleted successfully']);
     }
 
-    // تعديل الكمية في المستودع (Admin) — إدارة المخزون عبر خدمة المستودع
+    // تعديل الكمية في المستودع (Admin)
     public function updateStock(Request $request, Product $product)
     {
         $data = $request->validate([
@@ -209,7 +169,7 @@ class ProductController extends Controller
         }
 
         $path = Storage::disk('public')->path($product->image_path);
-        
+
         return response()->file($path);
     }
 }

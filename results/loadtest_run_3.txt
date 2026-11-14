@@ -1,9 +1,0 @@
-=== 3_redis ===
-ALL          p50=   525.5  p95=   931.8  p99=  1236.0  (ms)
-list         p50=   429.3  p95=   758.1  p99=  1765.4  (ms)
-detail       p50=   611.9  p95=   916.4  p99=  1083.5  (ms)
-search       p50=   404.1  p95=   734.7  p99=  1041.8  (ms)
-my_orders    p50=   729.8  p95=  1057.6  p99=  1147.8  (ms)
-requests/s  = 32.6
-failed      = 0.00%
-304 replies = 0

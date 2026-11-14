@@ -11,7 +11,6 @@ use Throwable;
 
 class ApiErrors
 {
-    /** استخدمه في الكونترولر بدل response()->json(['message'=>...], 409) */
     public static function json(int $status, string $code, string $message, mixed $details = null, array $headers = []): JsonResponse
     {
         return response()->json(

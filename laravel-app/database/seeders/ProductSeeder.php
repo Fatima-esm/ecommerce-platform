@@ -56,7 +56,6 @@ class ProductSeeder extends Seeder
 
             $product = Product::create($data);
 
-            // ضبط الكمية في خدمة المستودع
             try {
                 $inventory->setStock($product->id, $stock);
             } catch (\Throwable $e) {
