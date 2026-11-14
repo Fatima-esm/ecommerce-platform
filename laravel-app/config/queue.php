@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'database'),
+    'default' => env('QUEUE_CONNECTION', 'rabbitmq'),
 
     /*
     |--------------------------------------------------------------------------
@@ -88,7 +88,28 @@ return [
                 'deferred',
             ],
         ],
-
+        'rabbitmq' => [
+            'driver' => 'rabbitmq',
+            'hosts' => [
+                [
+                    'host' => env('RABBITMQ_HOST', '127.0.0.1'),
+                    'port' => env('RABBITMQ_PORT', 5672),
+                    'user' => env('RABBITMQ_USER', 'guest'),
+                    'password' => env('RABBITMQ_PASSWORD', 'guest'),
+                    'vhost' => env('RABBITMQ_VHOST', '/'),
+                ],
+            ],
+            'queue' => env('RABBITMQ_QUEUE', 'emails'),
+            'options' => [
+                'queue' => [
+                    'reroute_failed' => true,
+                    'failed_exchange' => 'orders.dlx',
+                    'failed_routing_key' => 'orders.email',
+                ],
+            ],
+            'worker' => env('RABBITMQ_WORKER', 'default'),
+            'after_commit' => true,
+        ],
     ],
 
     /*

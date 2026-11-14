@@ -79,7 +79,62 @@ services:
       - ./laravel-app:/var/www/html
       - uploads:/var/www/html/storage/app/public
 
-  # واجهة قواعد البيانات (بديل phpMyAdmin)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: shop
+      RABBITMQ_DEFAULT_PASS: shop
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  worker:
+    build: ./laravel-app
+    container_name: queue-worker
+    entrypoint: ["php", "artisan", "queue:work", "rabbitmq", "--queue=emails,broadcasts", "--sleep=1", "--tries=3", "--timeout=50"]
+    environment:
+      APP_ENV: local
+      APP_KEY: base64:YvHTIIzZ2JCMi1dV4+ROpQQQmhR+qPSpXQIctXP52jM=
+      DB_CONNECTION: pgsql
+      DB_HOST: laravel-db
+      DB_PORT: 5432
+      DB_DATABASE: shop
+      DB_USERNAME: shop
+      DB_PASSWORD: shop
+      QUEUE_CONNECTION: rabbitmq
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: shop
+      RABBITMQ_PASSWORD: shop
+      RABBITMQ_VHOST: /
+      RABBITMQ_QUEUE: emails
+      MAIL_MAILER: smtp
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: solaimanesmaeel334@gmail.com
+      MAIL_PASSWORD: unlrpsubwjbrqjee
+      MAIL_ENCRYPTION: tls
+      MAIL_FROM_ADDRESS: shop@gmail.com
+      MAIL_FROM_NAME: ShopApp
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      laravel-db:
+        condition: service_healthy
+    volumes:
+      - ./laravel-app:/var/www/html
+    restart: unless-stopped
+
   adminer:
     image: adminer:4
     container_name: adminer
@@ -92,3 +147,4 @@ volumes:
   laravel-db-data:
   inventory-db-data:
   uploads:
+  rabbitmq-data:

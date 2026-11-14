@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         mbstring \
         bcmath \
         opcache \
+        sockets \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. امتداد Redis (يحتاج أدوات البناء ثم نحذفها)

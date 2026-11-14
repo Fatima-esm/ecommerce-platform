@@ -12,6 +12,7 @@ use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Notifications\Jobs\SendOrderConfirmationEmail;
 use Illuminate\Support\Str;
 use App\Modules\Orders\Events\OrderCreated;
 use App\Modules\Orders\Events\OrderStatusChanged;
@@ -142,6 +143,11 @@ class OrderController extends Controller
 
             return ApiErrors::json(500, 'INTERNAL_ERROR', 'Failed to save order, stock released');
         }
+
+        SendOrderConfirmationEmail::dispatch($order->id)
+            ->onConnection('rabbitmq')
+            ->onQueue('emails')
+            ->afterCommit();
 
         Event::dispatch(new OrderCreated(
             userId: (int) $order->user_id,
