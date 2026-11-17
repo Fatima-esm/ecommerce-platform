@@ -126,6 +126,14 @@ services:
       MAIL_ENCRYPTION: tls
       MAIL_FROM_ADDRESS: shop@gmail.com
       MAIL_FROM_NAME: ShopApp
+      BROADCAST_CONNECTION: pusher
+      PUSHER_APP_ID: ecommerce
+      PUSHER_APP_KEY: ecommerce-key
+      PUSHER_APP_SECRET: ecommerce-secret
+      PUSHER_HOST: soketi
+      PUSHER_PORT: 6001
+      PUSHER_SCHEME: http
+      PUSHER_APP_CLUSTER: mt1
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -133,6 +141,19 @@ services:
         condition: service_healthy
     volumes:
       - ./laravel-app:/var/www/html
+    restart: unless-stopped
+
+  soketi:
+    image: quay.io/soketi/soketi:1.6-16-alpine
+    container_name: soketi
+    environment:
+      SOKETI_DEFAULT_APP_ID: ecommerce
+      SOKETI_DEFAULT_APP_KEY: ecommerce-key
+      SOKETI_DEFAULT_APP_SECRET: ecommerce-secret
+      SOKETI_PORT: 6001
+    ports:
+      - "6001:6001"
+      - "9601:9601"
     restart: unless-stopped
 
   adminer:

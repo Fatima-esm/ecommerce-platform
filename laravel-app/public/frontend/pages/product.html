@@ -1,0 +1,215 @@
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>تفاصيل المنتج | ShopApp</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <a class="brand" href="products.html">ShopApp</a>
+
+        <nav>
+            <a href="products.html">المنتجات</a>
+            <a href="my-orders.html">طلباتي</a>
+
+            <button
+                class="btn secondary"
+                id="logoutBtn"
+                type="button"
+            >
+                تسجيل الخروج
+            </button>
+        </nav>
+
+        <div class="actions">
+            <a href="checkout.html">🛒 سلة المشتريات</a>
+
+            <a
+                id="adminAddProduct"
+                class="btn"
+                href="admin.html"
+                style="display:none"
+            >
+                ＋ إضافة منتج
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <div id="notice" class="notice hidden"></div>
+
+        <section id="detail" class="panel">
+            جاري تحميل تفاصيل المنتج...
+        </section>
+
+    </main>
+
+    <script src="../assets/config.js"></script>
+    <script src="../assets/api.js"></script>
+
+    <script>
+        const detail = document.getElementById('detail');
+        const notice = document.getElementById('notice');
+
+        let currentProduct = null;
+
+        // قراءة رقم المنتج من الرابط
+        const params = new URLSearchParams(location.search);
+        const productId = Number(params.get('id'));
+
+        // التحقق من تسجيل الدخول
+        if (requireLogin()) {
+            initializePage();
+        }
+
+        function initializePage() {
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+
+            if (currentUser()?.role === 'admin') {
+                document.getElementById('adminAddProduct').style.display =
+                    'inline-block';
+            }
+
+            if (!Number.isInteger(productId) || productId <= 0) {
+                detail.textContent = 'رقم المنتج غير صحيح';
+                return;
+            }
+
+            loadProduct();
+        }
+
+        // جلب تفاصيل المنتج
+        async function loadProduct() {
+            detail.textContent = 'جاري تحميل تفاصيل المنتج...';
+
+            try {
+                const response = await api(
+                    `/api/v1/products/${productId}`
+                );
+
+                currentProduct = extractObject(response);
+
+                if (!currentProduct || !currentProduct.id) {
+                    detail.textContent = 'المنتج غير موجود';
+                    return;
+                }
+
+                renderProduct();
+
+            } catch (error) {
+                detail.textContent = '';
+                msg(notice, error.message, true);
+            }
+        }
+
+        // عرض تفاصيل المنتج
+        function renderProduct() {
+            detail.innerHTML = `
+                <div class="product-details">
+
+                    <div class="product-image">
+                        <img
+                            src="${esc(
+                                currentProduct.image_url ||
+                                'https://placehold.co/600x400?text=ShopApp'
+                            )}"
+                            alt="${esc(currentProduct.name)}"
+                        >
+                    </div>
+
+                    <div class="product-info">
+
+                        <h1>${esc(currentProduct.name)}</h1>
+
+                        <p>
+                            التصنيف:
+                            ${esc(currentProduct.category || 'غير محدد')}
+                        </p>
+
+                        <p>
+                            ${esc(
+                                currentProduct.description ||
+                                'لا يوجد وصف لهذا المنتج'
+                            )}
+                        </p>
+
+                        <h2 class="price">
+                            ${money(currentProduct.price)}
+                        </h2>
+
+                        <label for="quantity">
+                            الكمية:
+                        </label>
+
+                        <input
+                            id="quantity"
+                            type="number"
+                            min="1"
+                            value="1"
+                        >
+
+                        <div class="actions">
+
+                            <button
+                                id="addToCartBtn"
+                                class="btn"
+                                type="button"
+                            >
+                                أضف إلى السلة
+                            </button>
+
+                            <button
+                                id="buyNowBtn"
+                                class="btn secondary"
+                                type="button"
+                            >
+                                الانتقال إلى السلة
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+            `;
+
+            document
+                .getElementById('addToCartBtn')
+                .addEventListener('click', addCurrentProduct);
+
+            document
+                .getElementById('buyNowBtn')
+                .addEventListener('click', goToCheckout);
+        }
+
+        // إضافة المنتج الحالي إلى السلة
+        function addCurrentProduct() {
+            if (!currentProduct) return;
+
+            const quantityInput = document.getElementById('quantity');
+            const quantity = Math.max(
+                1,
+                Number(quantityInput.value) || 1
+            );
+
+            addToCart(currentProduct, quantity);
+
+            alert('تمت إضافة المنتج إلى السلة');
+        }
+
+        // إضافة المنتج ثم الانتقال إلى صفحة السلة
+        function goToCheckout() {
+            if (!currentProduct) return;
+
+            addCurrentProduct();
+
+            location.href = 'checkout.html';
+        }
+    </script>
+
+</body>
+</html>

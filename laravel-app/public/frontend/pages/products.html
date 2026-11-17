@@ -1,0 +1,158 @@
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>المنتجات | ShopApp</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <a class="brand" href="products.html">ShopApp</a>
+
+        <nav>
+            <a href="products.html">المنتجات</a>
+            <a href="my-orders.html">طلباتي</a>
+            <button class="btn secondary" id="logoutBtn" type="button">
+                تسجيل الخروج
+            </button>
+        </nav>
+
+        <div class="actions">
+            <a href="checkout.html">🛒 سلة المشتريات</a>
+
+            <a
+                id="adminAddProduct"
+                class="btn"
+                href="admin.html"
+                style="display:none"
+            >
+                ＋ إضافة منتج
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1>المنتجات</h1>
+
+        <div id="notice" class="notice hidden"></div>
+
+        <section id="products" class="products-grid">
+            جاري تحميل المنتجات...
+        </section>
+    </main>
+
+    <script src="../assets/config.js"></script>
+    <script src="../assets/api.js"></script>
+
+    <script>
+        const productsContainer = document.getElementById('products');
+        const notice = document.getElementById('notice');
+
+        let productsArray = [];
+
+        // التحقق من تسجيل الدخول
+        if (requireLogin()) {
+            initializePage();
+        }
+
+        function initializePage() {
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+
+            if (currentUser()?.role === 'admin') {
+                document.getElementById('adminAddProduct').style.display =
+                    'inline-block';
+            }
+
+            loadProducts();
+        }
+
+        // جلب المنتجات من Laravel
+        async function loadProducts() {
+            productsContainer.textContent = 'جاري تحميل المنتجات...';
+
+            try {
+                const response = await api('/api/v1/products');
+
+                productsArray = extractRows(response);
+
+                renderProducts();
+
+            } catch (error) {
+                productsContainer.textContent = '';
+                msg(notice, error.message, true);
+            }
+        }
+
+        // عرض المنتجات
+        function renderProducts() {
+            if (!productsArray.length) {
+                productsContainer.textContent = 'لا توجد منتجات متاحة حاليًا';
+                return;
+            }
+
+            productsContainer.innerHTML = productsArray.map(product => `
+                <article class="product-card">
+
+                    <a
+                        class="product-link"
+                        href="product.html?id=${Number(product.id)}"
+                    >
+                        <img
+                            src="${esc(
+                                product.image_url ||
+                                'https://placehold.co/500x300?text=ShopApp'
+                            )}"
+                            alt="${esc(product.name)}"
+                        >
+
+                        <div class="body">
+                            <b>${esc(product.name)}</b>
+
+                            <p>${esc(product.category || '')}</p>
+
+                            <div class="price">
+                                ${money(product.price)}
+                            </div>
+                        </div>
+                    </a>
+
+                    <button
+                        class="btn add-to-cart"
+                        type="button"
+                        data-id="${Number(product.id)}"
+                        data-name="${esc(product.name)}"
+                        data-price="${Number(product.price || 0)}"
+                        data-image="${esc(product.image_url || '')}"
+                    >
+                        أضف إلى السلة
+                    </button>
+
+                </article>
+            `).join('');
+        }
+
+        // إضافة المنتج إلى السلة
+        productsContainer.addEventListener('click', event => {
+            const button = event.target.closest('.add-to-cart');
+
+            if (!button) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            addToCart({
+                id: Number(button.dataset.id),
+                name: button.dataset.name,
+                price: Number(button.dataset.price),
+                image_url: button.dataset.image
+            });
+
+            alert('تمت إضافة المنتج إلى السلة');
+        });
+    </script>
+
+</body>
+</html>

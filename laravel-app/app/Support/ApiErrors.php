@@ -39,6 +39,17 @@ class ApiErrors
             return self::json($status, $code, $message, null, $e->getHeaders());
         }
 
+        //to certainly show debug details in development, but not in production. You can toggle this based on your environment.
+        $showDebugDetails = true; //false after testing in production
+
+        if ($showDebugDetails) {
+            return self::json(500, 'INTERNAL_ERROR', $e->getMessage(), [
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+                'trace' => $e->getTrace(),
+            ]);
+        }
+
         return self::json(500, 'INTERNAL_ERROR', 'Unexpected server error.');
     }
 }

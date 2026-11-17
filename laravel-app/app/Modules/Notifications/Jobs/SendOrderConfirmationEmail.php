@@ -31,8 +31,14 @@ class SendOrderConfirmationEmail implements ShouldQueue
     {
         $order = Order::with('user')->findOrFail($this->orderId);
 
-        Mail::to($order->user->email)
-            ->send(new OrderConfirmationMail($order));
+        if ($order->email_sent_at) {
+            return; 
+        }
+
+        Mail::to($order->user->email)->send(new OrderConfirmationMail($order));
+
+        $order->update(['email_sent_at' => now()]);    
+        
     }
 
 

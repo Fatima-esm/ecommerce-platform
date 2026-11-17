@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login | ShopApp</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="auth.html">ShopApp</a>
+        <span>Demo Interface</span>
+    </header>
+
+    <main class="container">
+        <section class="panel form">
+            <h1>Welcome</h1>
+            <div class="actions">
+                <button class="btn secondary" onclick="tab('login')">Login</button>
+                <button class="btn secondary" onclick="tab('register')">New Account</button>
+            </div>
+
+            <div id="notice" class="notice hidden"></div>
+
+            <form id="login">
+                <label>Email</label>
+                <input name="email" type="email" required>
+                <label>Password</label>
+                <input name="password" type="password" required>
+                <button class="btn">Sign In</button>
+            </form>
+
+            <form id="register" class="hidden">
+                <label>Name</label>
+                <input name="name" required>
+                <label>Email</label>
+                <input name="email" type="email" required>
+                <label>Password</label>
+                <input name="password" type="password" minlength="8" required>
+                <label>Confirm Password</label>
+                <input name="password_confirmation" type="password" minlength="8" required>
+                <button class="btn">Create Customer Account</button>
+            </form>
+
+            <p class="small">Admin account must already exist in the database with role <code>admin</code>.</p>
+        </section>
+    </main>
+
+    <script src="../assets/config.js"></script>
+    <script src="../assets/api.js"></script>
+    <script>
+        const n = document.querySelector('#notice');
+
+        function tab(t) {
+            login.classList.toggle('hidden', t !== 'login');
+            register.classList.toggle('hidden', t !== 'register');
+        }
+
+        login.onsubmit = async e => {
+            e.preventDefault();
+            try {
+                let d = await api('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(Object.fromEntries(new FormData(login)))
+                });
+                saveSession(d);
+                location.href = d.user?.role === 'admin' ? 'admin.html' : 'products.html';
+            } catch (x) {
+                msg(n, x.message, true);
+            }
+        };
+
+        register.onsubmit = async e => {
+            e.preventDefault();
+            try {
+                let v = Object.fromEntries(new FormData(register));
+                if (v.password !== v.password_confirmation) {
+                    throw Error('Passwords do not match');
+                }
+                let d = await api('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(v)
+                });
+                saveSession(d);
+                location.href = 'products.html';
+            } catch (x) {
+                msg(n, x.message, true);
+            }
+        };
+    </script>
+</body>
+</html>

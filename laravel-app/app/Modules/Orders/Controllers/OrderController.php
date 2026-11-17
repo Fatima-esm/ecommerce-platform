@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Notifications\Jobs\SendOrderConfirmationEmail;
+use App\Modules\Notifications\Jobs\SendOrderStatusEmail;
 use Illuminate\Support\Str;
 use App\Modules\Orders\Events\OrderCreated;
 use App\Modules\Orders\Events\OrderStatusChanged;
@@ -28,21 +29,23 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $orders = $request->user()
-            ->orders()
+        $orders = Order::where('user_id', auth()->id())
             ->with('items.product')
             ->latest()
-            ->get();
+             ->paginate(10);
 
         return ApiResponse::success($orders, 'Orders retrieved successfully');
     }
 
     public function adminIndex(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return ApiErrors::json(403, 'FORBIDDEN', 'Unauthorized action.');
+        if (!$request->user()->isAdmin()) {
+            return ApiErrors::json(
+                403,
+                'FORBIDDEN',
+                'Only admin can access all orders'
+            );
         }
-
         $query = Order::with(['user', 'items.product']);
 
         if ($request->filled('status')) {
@@ -51,9 +54,12 @@ class OrderController extends Controller
 
         $orders = $query->latest()->paginate(20);
 
-        return ApiResponse::success($orders, 'All orders retrieved successfully');
+        return ApiResponse::success(
+            $orders,
+            'All orders retrieved successfully'
+        );
     }
-
+    
     public function show(Request $request, $id)
     {
         $user = $request->user();
@@ -87,7 +93,6 @@ class OrderController extends Controller
             $product = Product::findOrFail($row['product_id']);
             $qty = (int) $row['quantity'];
             $total += $product->price * $qty;
-
             $reserveItems[] = [
                 'product_id' => (int) $product->id,
                 'quantity'   => $qty,
@@ -152,6 +157,7 @@ class OrderController extends Controller
         Event::dispatch(new OrderCreated(
             userId: (int) $order->user_id,
             orderId: (int) $order->id,
+            status: (string) $order->status,
             totalAmount: (float) $order->total_amount,
         ));
 
@@ -180,8 +186,16 @@ class OrderController extends Controller
         } catch (\Throwable $e) {
             return ApiErrors::json(503, 'INVENTORY_UNAVAILABLE', 'Failed to release stock');
         }
+        $from = $order->status;
 
         $order->update(['status' => 'cancelled']);
+
+        Event::dispatch(new OrderStatusChanged(
+            userId: (int) $order->user_id,
+            orderId: (int) $order->id,
+            from: $from, 
+            to: 'cancelled'
+        ));
 
         return ApiResponse::success($order, 'Order cancelled and stock restored');
     }
@@ -235,6 +249,12 @@ class OrderController extends Controller
             from: $currentStatus,
             to: $newStatus,
         ));
+
+        SendOrderStatusEmail::dispatch($order->id, $newStatus)
+            ->onConnection('rabbitmq')
+            ->onQueue('emails')
+            ->afterCommit();
+
 
         return ApiResponse::success($order->fresh('items.product'), 'Status updated successfully');
     }

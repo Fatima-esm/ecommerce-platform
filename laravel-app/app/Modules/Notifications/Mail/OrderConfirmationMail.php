@@ -13,42 +13,30 @@ class OrderConfirmationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * تمرير كائن الطلب (Order) إلى الـ Mailable.
-     */
     public function __construct(
         public Order $order
     ) {}
 
-    /**
-     * إعداد عنوان الرسالة (Subject).
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "تأكيد استلام طلبك رقم #{$this->order->id} - ShopApp",
+            subject: "Order Confirmation #{$this->order->id} - ShopApp",
         );
     }
 
-    /**
-     * تحديد قالب العرض والبيانات الممررة إليه.
-     */
     public function content(): Content
     {
         return new Content(
             markdown: 'emails.orders.confirmation',
             with: [
                 'orderId' => $this->order->id,
-                'customerName' => $this->order->user->name ?? 'عميلنا العزيز',
+                'customerName' => $this->order->user->name ?? 'Dear Customer',
                 'status' => $this->order->status,
-                'total' => number_format((float) $this->order->total, 2),
+                'total' => number_format((float) ($this->order->total_amount ?? $this->order->getAttribute('total_amount')), 2),
             ],
         );
     }
 
-    /**
-     * المرفقات (لا يوجد مرفقات حالياً).
-     */
     public function attachments(): array
     {
         return [];

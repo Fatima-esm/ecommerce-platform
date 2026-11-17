@@ -1,24 +1,13 @@
 <x-mail::message>
-# مرحباً {{ $customerName }}،
+# Hello {{ $customerName }},
 
-يسعدنا إبلاغك بأنه تم استلام طلبك بنجاح في **ShopApp**، ونعمل حالياً على معالجته.
+Your order **#{{ $orderId }}** has been received and is being processed.
 
-<x-mail::panel>
-**ملخص طلبك**
+- **Status:** {{ $status }}
+- **Total:** ${{ $total }}
 
-| التفاصيل | القيمة |
-|---|---|
-| رقم الطلب | #{{ $orderId }} |
-| حالة الطلب | {{ $status }} |
-| إجمالي المبلغ | ${{ $total }} |
-</x-mail::panel>
+We will keep you updated. Thanks for shopping with us!
 
-سنرسل إليك إشعاراً فور حدوث أي تغيير على حالة طلبك، حتى تتمكن من متابعة طلبك دون الحاجة إلى التحقق منه باستمرار.
-
-يمكنك الرجوع إلى حسابك في أي وقت للاطلاع على تفاصيل الطلب وآخر تحديثاته.
-
-شكراً لثقتك وتسوقك معنا!
-
-مع أطيب التحيات，
-**فريق {{ config('app.name') }}**
+Thanks, <br>
+{{ config('app.name') }}
 </x-mail::message>

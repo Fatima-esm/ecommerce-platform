@@ -1,0 +1,831 @@
+
+/* ==========================================
+   1. المتغيرات العامة وإعادة الضبط
+   ========================================== */
+
+:root {
+    --g: #16845b;
+    --g-dark: #0d6847;
+    --g-light: #e9f4ee;
+
+    --ink: #17231e;
+    --muted: #718078;
+
+    --bg: #f5f8f6;
+    --white: #ffffff;
+
+    --line: #e1e9e4;
+
+    --danger: #b32d2d;
+    --danger-bg: #fff0f0;
+
+    --warning-bg: #fff5df;
+
+    --radius: 12px;
+    --shadow: 0 3px 12px rgba(20, 60, 40, 0.05);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+
+    font-family: Arial, Tahoma, sans-serif;
+
+    direction: rtl;
+    text-align: right;
+
+    line-height: 1.6;
+}
+
+a {
+    color: var(--g);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--g-dark);
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+    margin-top: 0;
+}
+
+h1 {
+    margin-bottom: 22px;
+    font-size: 27px;
+}
+
+h2 {
+    font-size: 22px;
+}
+
+p {
+    color: var(--muted);
+}
+
+
+/* ==========================================
+   2. الشريط العلوي والتنقل
+   ========================================== */
+
+.topbar {
+    background: var(--white);
+
+    border-bottom: 1px solid var(--line);
+
+    padding: 14px 5%;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.brand {
+    font-size: 23px;
+    font-weight: bold;
+    color: var(--g);
+
+    white-space: nowrap;
+}
+
+.topbar nav,
+.topbar .actions,
+.actions {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.topbar nav a {
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.topbar nav a:hover {
+    color: var(--g);
+}
+
+.topbar .actions a {
+    white-space: nowrap;
+}
+
+.container {
+    width: min(1100px, 92%);
+    margin: 28px auto;
+}
+
+
+/* ==========================================
+   3. البطاقات والأقسام العامة
+   ========================================== */
+
+.panel {
+    background: var(--white);
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+
+    padding: 20px;
+    margin-bottom: 18px;
+
+    box-shadow: var(--shadow);
+}
+
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 12px;
+    flex-wrap: wrap;
+
+    margin-bottom: 20px;
+}
+
+.section-head h1,
+.section-head h2 {
+    margin-bottom: 0;
+}
+
+.grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fill, minmax(210px, 1fr));
+
+    gap: 16px;
+}
+
+
+/* ==========================================
+   4. صفحة عرض المنتجات
+   ========================================== */
+
+.products-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fill, minmax(220px, 1fr));
+
+    gap: 20px;
+}
+
+.product-card {
+    background: var(--white);
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+
+    overflow: hidden;
+
+    box-shadow: var(--shadow);
+
+    display: flex;
+    flex-direction: column;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 7px 20px rgba(20, 60, 40, 0.10);
+}
+
+.product-card img {
+    width: 100%;
+    height: 190px;
+
+    object-fit: cover;
+    background: #f0f3f1;
+}
+
+.product-card .body {
+    padding: 15px;
+    flex: 1;
+}
+
+.product-card .body b {
+    display: block;
+    font-size: 17px;
+    margin-bottom: 8px;
+}
+
+.product-card .body p {
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.product-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.product-link:hover {
+    color: inherit;
+}
+
+.product-card > .btn {
+    margin: 0 15px 15px;
+}
+
+
+/* ==========================================
+   5. تفاصيل المنتج
+   ========================================== */
+
+.product-details {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 30px;
+    align-items: start;
+}
+
+.product-image img {
+    width: 100%;
+
+    max-height: 430px;
+
+    object-fit: contain;
+
+    border-radius: var(--radius);
+    background: #f5f8f6;
+}
+
+.product-info h1 {
+    margin-bottom: 15px;
+}
+
+.product-info p {
+    line-height: 1.9;
+}
+
+.product-info .price {
+    margin: 20px 0;
+}
+
+.product-info input {
+    max-width: 130px;
+}
+
+.product-info .actions {
+    margin-top: 20px;
+}
+
+
+/* ==========================================
+   6. الأسعار
+   ========================================== */
+
+.price {
+    font-size: 19px;
+    font-weight: bold;
+
+    color: var(--g);
+
+    margin: 10px 0;
+}
+
+
+/* ==========================================
+   7. النماذج وحقول الإدخال
+   ========================================== */
+
+.form {
+    max-width: 470px;
+    margin: 35px auto;
+}
+
+.form h1 {
+    text-align: center;
+}
+
+label {
+    display: block;
+
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+
+    padding: 11px 12px;
+
+    border: 1px solid #ccd9d1;
+    border-radius: 8px;
+
+    margin: 6px 0 13px;
+
+    background: var(--white);
+    color: var(--ink);
+
+    outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--g);
+
+    box-shadow:
+        0 0 0 3px rgba(22, 132, 91, 0.10);
+}
+
+input[type="number"] {
+    direction: ltr;
+    text-align: center;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    width: auto;
+    margin: 0 0 0 6px;
+}
+
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.row {
+    display: flex;
+    gap: 12px;
+}
+
+.row > * {
+    flex: 1;
+}
+
+
+/* ==========================================
+   8. الأزرار
+   ========================================== */
+
+.btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    border: 0;
+    border-radius: 8px;
+
+    background: var(--g);
+    color: var(--white);
+
+    padding: 10px 17px;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    text-decoration: none;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: var(--g-dark);
+    color: var(--white);
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn.secondary {
+    background: var(--g-light);
+    color: var(--g-dark);
+}
+
+.btn.secondary:hover {
+    background: #d9ede2;
+}
+
+.btn.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.btn.danger:hover {
+    background: #ffe0e0;
+}
+
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid rgba(22, 132, 91, 0.3);
+    outline-offset: 3px;
+}
+
+
+/* ==========================================
+   9. سلة المشتريات
+   ========================================== */
+
+.form:has(#cartItems) {
+    max-width: 850px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.cart-item-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    min-width: 0;
+}
+
+.cart-item-info img {
+    width: 105px;
+    height: 95px;
+
+    object-fit: cover;
+
+    border-radius: 9px;
+    background: #f0f3f1;
+
+    flex-shrink: 0;
+}
+
+.cart-item-info h3 {
+    font-size: 16px;
+    margin-bottom: 7px;
+}
+
+.cart-item-info p {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.cart-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cart-item-actions label {
+    margin: 0;
+}
+
+.cart-item-actions input {
+    width: 85px;
+    margin: 5px 0 0;
+}
+
+#cartSummary {
+    border-top: 1px solid var(--line);
+
+    padding-top: 18px;
+    margin-top: 20px;
+}
+
+#total {
+    color: var(--g-dark);
+    font-size: 22px;
+    font-weight: bold;
+}
+
+
+/* ==========================================
+   10. الحالات والشارات
+   ========================================== */
+
+.statusbar {
+    padding: 10px;
+
+    background: #edf1ee;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+}
+
+.dot {
+    display: inline-block;
+
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    background: #999;
+
+    margin-left: 6px;
+}
+
+.dot.ok {
+    background: #1aaf70;
+}
+
+.dot.bad {
+    background: #d34a4a;
+}
+
+.badge {
+    display: inline-block;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    background: #edf1ee;
+
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.pending {
+    background: var(--warning-bg);
+    color: #8b641b;
+}
+
+.confirmed {
+    background: #e5f5ec;
+    color: #176344;
+}
+
+.cancelled {
+    background: #ffecec;
+    color: #a52c2c;
+}
+
+
+/* ==========================================
+   11. رسائل النجاح والأخطاء
+   ========================================== */
+
+.notice {
+    padding: 12px 15px;
+
+    background: #edf7f1;
+    color: #176344;
+
+    border: 1px solid #d6ebdd;
+    border-radius: 8px;
+
+    margin: 12px 0;
+
+    white-space: pre-line;
+}
+
+.notice.error {
+    background: var(--danger-bg);
+    color: #a52c2c;
+
+    border-color: #f2d4d4;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* ==========================================
+   12. الجداول
+   ========================================== */
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+
+    border-radius: 10px;
+    border: 1px solid var(--line);
+}
+
+table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    background: var(--white);
+}
+
+td,
+th {
+    text-align: right;
+
+    padding: 12px;
+
+    border-bottom: 1px solid var(--line);
+
+    white-space: nowrap;
+}
+
+th {
+    background: #f5f8f6;
+    font-weight: bold;
+}
+
+tbody tr:hover {
+    background: #f9fbfa;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+
+/* ==========================================
+   13. عناصر إضافية
+   ========================================== */
+
+hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+
+    margin: 20px 0;
+}
+
+.empty-state {
+    padding: 35px 15px;
+
+    text-align: center;
+    color: var(--muted);
+}
+
+.text-muted {
+    color: var(--muted);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.w-full {
+    width: 100%;
+}
+
+
+/* ==========================================
+   14. التصميم المتجاوب
+   ========================================== */
+
+@media (max-width: 800px) {
+
+    .product-details {
+        grid-template-columns: 1fr;
+    }
+
+    .product-image img {
+        max-height: 350px;
+    }
+
+    .topbar {
+        padding: 14px 4%;
+    }
+}
+
+
+@media (max-width: 650px) {
+
+    .container {
+        width: 94%;
+        margin: 18px auto;
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 13px;
+    }
+
+    .topbar nav,
+    .topbar .actions {
+        justify-content: flex-start;
+    }
+
+    .products-grid {
+        grid-template-columns:
+            repeat(auto-fill, minmax(155px, 1fr));
+
+        gap: 12px;
+    }
+
+    .product-card img {
+        height: 140px;
+    }
+
+    .product-card .body {
+        padding: 11px;
+    }
+
+    .product-card > .btn {
+        margin: 0 11px 11px;
+    }
+
+    .row {
+        display: block;
+    }
+
+    .cart-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .cart-item-info {
+        width: 100%;
+    }
+
+    .cart-item-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .form {
+        width: 100%;
+        margin: 20px auto;
+    }
+
+    .form:has(#cartItems) {
+        max-width: 100%;
+    }
+
+    h1 {
+        font-size: 23px;
+    }
+
+    .btn {
+        padding: 9px 13px;
+    }
+}
+
+
+@media (max-width: 380px) {
+
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cart-item-info img {
+        width: 80px;
+        height: 80px;
+    }
+
+    .topbar .actions,
+    .topbar nav {
+        gap: 8px;
+    }
+}

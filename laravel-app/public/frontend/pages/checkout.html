@@ -1,0 +1,293 @@
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>سلة المشتريات | ShopApp</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <a class="brand" href="products.html">ShopApp</a>
+
+        <nav>
+            <a href="products.html">متابعة التسوق</a>
+            <a href="my-orders.html">طلباتي</a>
+
+            <button
+                class="btn secondary"
+                id="logoutBtn"
+                type="button"
+            >
+                تسجيل الخروج
+            </button>
+        </nav>
+    </header>
+
+    <main class="container">
+
+        <section class="panel form">
+
+            <h1>سلة المشتريات</h1>
+
+            <div id="notice" class="notice hidden"></div>
+
+            <div id="cartItems">
+                جاري تحميل السلة...
+            </div>
+
+            <div id="cartSummary">
+                <h2 id="total"></h2>
+            </div>
+
+            <div class="actions">
+                <button
+                    id="place"
+                    class="btn"
+                    type="button"
+                >
+                    تأكيد الطلب
+                </button>
+
+                <a
+                    href="products.html"
+                    class="btn secondary"
+                >
+                    متابعة التسوق
+                </a>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="../assets/config.js"></script>
+    <script src="../assets/api.js"></script>
+
+    <script>
+        const cartItems = document.getElementById('cartItems');
+        const totalElement = document.getElementById('total');
+        const placeButton = document.getElementById('place');
+        const notice = document.getElementById('notice');
+
+        let submitting = false;
+
+        // التحقق من تسجيل الدخول
+        if (requireLogin()) {
+            document
+                .getElementById('logoutBtn')
+                .addEventListener('click', logout);
+
+            renderCart();
+        }
+
+        // عرض السلة
+        function renderCart() {
+            const cart = getCart();
+
+            if (!cart.length) {
+                cartItems.innerHTML = `
+                    <p>سلة المشتريات فارغة</p>
+                `;
+
+                totalElement.textContent = '';
+                placeButton.disabled = true;
+                return;
+            }
+
+            placeButton.disabled = submitting;
+
+            cartItems.innerHTML = cart.map(item => {
+                const productId = Number(item.product_id);
+                const quantity = Number(item.quantity || 1);
+                const price = Number(item.price || 0);
+
+                return `
+                    <article
+                        class="panel cart-item"
+                        data-product-id="${productId}"
+                    >
+
+                        <div class="cart-item-info">
+
+                            ${
+                                item.image_url
+                                    ? `
+                                        <img
+                                            src="${esc(item.image_url)}"
+                                            alt="${esc(item.name || 'Product')}"
+                                        >
+                                    `
+                                    : ''
+                            }
+
+                            <div>
+                                <h3>
+                                    ${esc(item.name || 'Product #' + productId)}
+                                </h3>
+
+                                <p>
+                                    سعر الوحدة:
+                                    ${money(price)}
+                                </p>
+
+                                <p>
+                                    المجموع:
+                                    ${money(price * quantity)}
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div class="cart-item-actions">
+
+                            <label>
+                                الكمية:
+                                <input
+                                    class="quantity-input"
+                                    type="number"
+                                    min="1"
+                                    value="${quantity}"
+                                    data-product-id="${productId}"
+                                >
+                            </label>
+
+                            <button
+                                class="btn danger remove-item"
+                                type="button"
+                                data-product-id="${productId}"
+                            >
+                                حذف
+                            </button>
+
+                        </div>
+
+                    </article>
+                `;
+            }).join('');
+
+            // حساب الإجمالي
+            const total = cart.reduce((sum, item) => {
+                return sum +
+                    Number(item.price || 0) *
+                    Number(item.quantity || 0);
+            }, 0);
+
+            totalElement.textContent = 'الإجمالي: ' + money(total);
+        }
+
+        // تعديل كمية منتج
+        cartItems.addEventListener('change', event => {
+            const input = event.target.closest('.quantity-input');
+
+            if (!input) return;
+
+            const productId = Number(input.dataset.productId);
+            const quantity = Math.max(1, Number(input.value) || 1);
+
+            updateCartQuantity(productId, quantity);
+
+            renderCart();
+        });
+
+        // حذف منتج من السلة
+        cartItems.addEventListener('click', event => {
+            const button = event.target.closest('.remove-item');
+
+            if (!button) return;
+
+            const productId = Number(button.dataset.productId);
+
+            removeFromCart(productId);
+
+            renderCart();
+        });
+
+        // تأكيد الطلب
+        placeButton.addEventListener('click', async () => {
+
+            if (submitting) return;
+
+            const cart = getCart();
+
+            if (!cart.length) {
+                msg(notice, 'سلة المشتريات فارغة', true);
+                return;
+            }
+
+            // تجهيز العناصر بالصيغة التي يتوقعها Laravel
+            const items = cart.map(item => ({
+                product_id: Number(item.product_id),
+                quantity: Number(item.quantity)
+            }));
+
+            // التحقق من صحة البيانات قبل الإرسال
+            const invalidItem = items.some(item =>
+                !Number.isInteger(item.product_id) ||
+                item.product_id <= 0 ||
+                !Number.isInteger(item.quantity) ||
+                item.quantity <= 0
+            );
+
+            if (invalidItem) {
+                msg(notice, 'توجد بيانات غير صحيحة في السلة', true);
+                return;
+            }
+
+            try {
+                submitting = true;
+                placeButton.disabled = true;
+                placeButton.textContent = 'جاري إنشاء الطلب...';
+
+                const response = await api('/api/v1/orders', {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+
+                    body: JSON.stringify({
+                        items: items
+                    })
+                });
+
+                const order = extractObject(response);
+
+                // تفريغ السلة بعد نجاح إنشاء الطلب فقط
+                clearCart();
+
+                cartItems.innerHTML = `
+                    <p>تم إنشاء طلبك بنجاح</p>
+                `;
+
+                totalElement.textContent = '';
+
+                msg(
+                    notice,
+                    'تم إنشاء الطلب بنجاح. رقم الطلب: ' +
+                    (order?.id || 'راجع صفحة طلباتي')
+                );
+
+                placeButton.textContent = 'تم إنشاء الطلب';
+                placeButton.disabled = true;
+
+                setTimeout(() => {
+                    location.href = 'my-orders.html';
+                }, 1500);
+
+            } catch (error) {
+
+                submitting = false;
+                placeButton.disabled = false;
+                placeButton.textContent = 'تأكيد الطلب';
+
+                msg(notice, error.message, true);
+            }
+        });
+
+    </script>
+
+</body>
+</html>
