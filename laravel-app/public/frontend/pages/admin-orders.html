@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customer Orders | Admin Panel</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #1e293b;
+            --sidebar-color: #94a3b8;
+            --sidebar-active: #ffffff;
+            --sidebar-hover: #334155;
+            --primary-color: #6a994e;
+        }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; display: flex; min-height: 100vh; direction: ltr; text-align: left; }
+        aside.sidebar { width: var(--sidebar-width); background-color: var(--sidebar-bg); color: var(--sidebar-color); position: fixed; top: 0; bottom: 0; left: 0; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; z-index: 100; }
+        aside.sidebar .brand-area { font-size: 22px; font-weight: bold; color: #ffffff; margin-bottom: 35px; text-align: center; }
+        aside.sidebar nav { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+        aside.sidebar nav a { color: var(--sidebar-color); text-decoration: none; padding: 12px 15px; border-radius: 8px; transition: 0.3s; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+        aside.sidebar nav a:hover, aside.sidebar nav a.active { background-color: var(--sidebar-hover); color: var(--sidebar-active); }
+        .main-wrapper { margin-left: var(--sidebar-width); flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
+        header.topbar { background: #ffffff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); height: 70px; box-sizing: border-box; }
+        header.topbar .brand { font-size: 20px; font-weight: bold; color: #1e293b; text-decoration: none; }
+        .container { padding: 30px; max-width: 1400px; box-sizing: border-box; }
+        .panel { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+        .notice { padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; }
+        .notice.hidden { display: none; }
+
+        /* تنسيق الجدول بخطوط أفقية فقط مع تثبيت عرض الأعمدة */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; vertical-align: middle; }
+        th { background: #f1f5f9; color: #1e293b; font-weight: 600; }
+        tbody tr:hover { background-color: #f8fafc; }
+
+        /* تثبيت عرض كل عمود لمنع أي اهتزاز عند تغير الحالة */
+        .col-id { width: 14%; }
+        .col-customer { width: 26%; }
+        .col-total { width: 18%; }
+        .col-status { width: 18%; }
+        .action-cell { width: 24%; text-align: center; }
+
+        .action-container { display: flex; gap: 8px; justify-content: center; align-items: center; min-height: 32px; }
+        .table-btn { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; width: 78px; text-align: center; }
+
+        @media (max-width: 900px) { aside.sidebar { width: 70px; padding: 10px; } aside.sidebar .brand-area, aside.sidebar nav a span { display: none; } .main-wrapper { margin-left: 70px; } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand-area">Admin Panel</div>
+        <nav>
+            <a href="products.html">📦 <span>Products</span></a>
+            <a href="admin-orders.html" class="active">📋 <span>Customer Orders</span></a>
+            <a href="admin.html">⚙️ <span>Add Product</span></a>
+        </nav>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <a class="brand" href="admin-orders.html">Customer Orders Dashboard</a>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="statusbar" style="display: flex; align-items: center; gap: 8px; font-size: 13px; background: #f1f5f9; padding: 6px 12px; border-radius: 20px;">
+                    <i id="socketDot" style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block;"></i>
+                    <span id="socketLabel" style="color: #334155; font-weight: 500;">Checking Soketi...</span>
+                </div>
+                <button class="btn secondary" onclick="logout()" style="padding: 8px 15px; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Logout</button>
+            </div>
+        </header>
+
+        <main class="container">
+            <div class="section-head" style="margin-bottom: 25px;">
+                <h1 style="color: #1e293b; margin: 0 0 5px 0;">Customer Orders</h1>
+                <p style="color: #64748b; margin: 0;">Real-time management and tracking of incoming customer orders</p>
+            </div>
+
+            <div id="notice" class="notice hidden"></div>
+
+            <section class="panel">
+                <div class="section-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0; color: #1e293b;">Orders List</h2>
+                    <button class="btn secondary" onclick="loadOrders()" style="background: #e2e8f0; color: #1e293b; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Refresh List</button>
+                </div>
+                
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-id">Order ID</th>
+                                <th class="col-customer">Customer</th>
+                                <th class="col-total">Total</th>
+                                <th class="col-status">Status</th>
+                                <th class="action-cell">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody">
+                            <tr><td colspan="5" style="text-align: center;">Loading orders...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../assets/config.js"></script>
+    <script src="../assets/api.js"></script>
+    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+    <script src="../assets/realtime.js"></script>
+    <script>
+        const socketDot = document.getElementById('socketDot');
+        const socketLabel = document.getElementById('socketLabel');
+
+        function updateSocketStatus(connected, text) {
+            socketDot.style.background = connected ? '#22c55e' : '#ef4444';
+            socketLabel.textContent = text;
+        }
+
+        if (requireAdmin()) {
+            loadOrders();
+            
+            try {
+                const conn = connectRealtime({
+                    onCreated: (data) => {
+                        console.log('New order received:', data);
+                        loadOrders();
+                    },
+                    onStatus: (data) => {
+                        console.log('Order status changed:', data);
+                        loadOrders();
+                    }
+                });
+
+                if (conn && conn.connection) {
+
+                    const socketConnection = conn.connection;
+
+                    function checkSocketState(state) {
+                        console.log('Soketi state:', state);
+
+                        if (state === 'connected') {
+                            updateSocketStatus(true, 'Soketi Connected');
+                        } else {
+                            updateSocketStatus(false, 'Not Connected');
+                        }
+                    }
+
+                    // فحص الحالة الحالية الفعلية
+                    checkSocketState(socketConnection.state);
+
+                    // مراقبة أي تغير في الاتصال
+                    socketConnection.bind('state_change', states => {
+                        checkSocketState(states.current);
+                    });
+
+                } else {
+                    updateSocketStatus(false, 'Not Connected');
+                }
+
+            } catch (e) {
+                console.error('Soketi connection error:', e);
+                updateSocketStatus(false, 'Not Connected');
+            }       
+    
+        }
+
+        async function loadOrders() {
+            const tbody = document.getElementById('tbody');
+            try {
+                const response = await api('/api/v1/admin/orders');
+                const orders = extractRows(response);
+
+                if (!orders.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b;">No orders found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(order => {
+                    const confirmBtn = order.status === 'pending' 
+                        ? `<button class="table-btn" onclick="changeStatus(${Number(order.id)}, 'confirmed')" style="background: #16a34a; color: #fff;">Confirm</button>` 
+                        : '';
+                    
+                    const cancelBtn = order.status !== 'cancelled' 
+                        ? `<button class="table-btn" onclick="changeStatus(${Number(order.id)}, 'cancelled')" style="background: #fee2e2; color: #dc2626;">Cancel</button>` 
+                        : `<span style="color: #94a3b8; font-size: 13px;">No actions</span>`;
+
+                    return `
+                        <tr>
+                            <td class="col-id"><strong>#${Number(order.id)}</strong></td>
+                            <td class="col-customer">${esc(order.user?.name || ('User ' + order.user_id))}</td>
+                            <td class="col-total"><strong>${money(order.total_amount)}</strong></td>
+                            <td class="col-status">${badge(order.status)}</td>
+                            <td class="action-cell">
+                                <div class="action-container">
+                                    ${confirmBtn}
+                                    ${cancelBtn}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="5" style="color: #dc2626; text-align: center;">${esc(error.message)}</td></tr>`;
+            }
+        }
+
+        async function changeStatus(id, status) {
+            try {
+                await api(`/api/v1/admin/orders/${id}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                msg(notice, 'Order #' + id + ' status updated successfully');
+                notice.classList.remove('hidden');
+                await loadOrders();
+            } catch (error) {
+                msg(notice, error.message, true);
+                notice.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

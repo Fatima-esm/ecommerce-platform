@@ -3,8 +3,140 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login | ShopApp</title>
+    <title>Sign up / Login | ShopApp</title>
     <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        /* تنسيقات إضافية مطابقة للتصميم المطلوب مع الحفاظ على الروابط والوظائف */
+        body {
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: ltr;
+            text-align: left;
+        }
+        header.topbar {
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header.topbar a.brand {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2e5a1e;
+            text-decoration: none;
+        }
+        header.topbar span {
+            color: #666;
+            font-size: 14px;
+        }
+        .container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .panel.form {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+        }
+        .panel.form h1 {
+            color: #55823b;
+            font-size: 28px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 25px;
+            margin-top: 0;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .actions .btn.secondary {
+            flex: 1;
+            background-color: #f0f5ec;
+            color: #55823b;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .actions .btn.secondary:hover {
+            background-color: #55823b;
+            color: #fff;
+        }
+        .panel.form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .panel.form input {
+            width: 100%;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            border: none;
+            border-bottom: 2px solid #ddd;
+            outline: none;
+            font-size: 15px;
+            background: transparent;
+            transition: border-color 0.3s;
+        }
+        .panel.form input:focus {
+            border-bottom-color: #55823b;
+        }
+        .panel.form button.btn:not(.secondary) {
+            width: 100%;
+            background-color: #6a994e;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        .panel.form button.btn:not(.secondary):hover {
+            background-color: #386641;
+        }
+        .notice {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        .notice.error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .small {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <header class="topbar">
@@ -14,15 +146,15 @@
 
     <main class="container">
         <section class="panel form">
-            <h1>Welcome</h1>
+            <h1>Sign up</h1>
             <div class="actions">
-                <button class="btn secondary" onclick="tab('login')">Login</button>
                 <button class="btn secondary" onclick="tab('register')">New Account</button>
+                <button class="btn secondary" onclick="tab('login')">Login</button>
             </div>
 
             <div id="notice" class="notice hidden"></div>
 
-            <form id="login">
+            <form id="login" class="hidden">
                 <label>Email</label>
                 <input name="email" type="email" required>
                 <label>Password</label>
@@ -30,16 +162,16 @@
                 <button class="btn">Sign In</button>
             </form>
 
-            <form id="register" class="hidden">
-                <label>Name</label>
+            <form id="register">
+                <label>Username</label>
                 <input name="name" required>
                 <label>Email</label>
                 <input name="email" type="email" required>
                 <label>Password</label>
                 <input name="password" type="password" minlength="8" required>
-                <label>Confirm Password</label>
-                <input name="password_confirmation" type="password" minlength="8" required>
-                <button class="btn">Create Customer Account</button>
+                <label class="hidden">Confirm Password</label>
+                <input name="password_confirmation" type="password" minlength="8" class="hidden" value="12345678">
+                <button class="btn">Sign up</button>
             </form>
 
             <p class="small">Admin account must already exist in the database with role <code>admin</code>.</p>
@@ -54,6 +186,7 @@
         function tab(t) {
             login.classList.toggle('hidden', t !== 'login');
             register.classList.toggle('hidden', t !== 'register');
+            document.querySelector('h1').textContent = t === 'login' ? 'Login' : 'Sign up';
         }
 
         login.onsubmit = async e => {
@@ -68,6 +201,8 @@
                 location.href = d.user?.role === 'admin' ? 'admin.html' : 'products.html';
             } catch (x) {
                 msg(n, x.message, true);
+                n.classList.remove('hidden');
+                n.classList.add('error');
             }
         };
 
@@ -75,6 +210,10 @@
             e.preventDefault();
             try {
                 let v = Object.fromEntries(new FormData(register));
+                // إذا لم تقم بإدخال حقل التأكيد ظاهرياً، نجعله يطابق كلمة المرور لتسهيل التسجيل السريع
+                if (!v.password_confirmation) {
+                    v.password_confirmation = v.password;
+                }
                 if (v.password !== v.password_confirmation) {
                     throw Error('Passwords do not match');
                 }
@@ -87,6 +226,8 @@
                 location.href = 'products.html';
             } catch (x) {
                 msg(n, x.message, true);
+                n.classList.remove('hidden');
+                n.classList.add('error');
             }
         };
     </script>

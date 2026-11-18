@@ -1,158 +1,302 @@
-
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>المنتجات | ShopApp</title>
+    <title>Products | ShopApp</title>
     <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #1e293b;
+            --sidebar-color: #94a3b8;
+            --sidebar-active: #ffffff;
+            --sidebar-hover: #334155;
+            --primary-color: #6a994e;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            display: flex;
+            min-height: 100vh;
+            direction: ltr;
+            text-align: left;
+        }
+        aside.sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+        aside.sidebar .brand-area {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 35px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        aside.sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        aside.sidebar nav a {
+            color: var(--sidebar-color);
+            text-decoration: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: 0.3s;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        aside.sidebar nav a:hover, aside.sidebar nav a.active {
+            background-color: var(--sidebar-hover);
+            color: var(--sidebar-active);
+        }
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        header.topbar {
+            background: #ffffff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            height: 70px;
+            box-sizing: border-box;
+        }
+        header.topbar .brand {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e293b;
+            text-decoration: none;
+        }
+        header.topbar .actions-top {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .container {
+            padding: 30px;
+            max-width: 1400px;
+            box-sizing: border-box;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        article.product-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e2e8f0;
+            height: 100%;
+        }
+        article.product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+        article.product-card .product-link {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        article.product-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background-color: #f1f5f9;
+        }
+        article.product-card .body {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+        article.product-card .body b {
+            font-size: 16px;
+            color: #1e293b;
+            margin-bottom: 5px;
+            display: block;
+        }
+        article.product-card .body p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0 0 10px 0;
+        }
+        article.product-card .price {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: auto;
+        }
+        article.product-card .add-to-cart {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 0 0 12px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        article.product-card .add-to-cart:hover {
+            background-color: #386641;
+        }
+        .notice { padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; }
+        .notice.hidden { display: none; }
+        @media (max-width: 900px) {
+            aside.sidebar { width: 70px; padding: 10px; }
+            aside.sidebar .brand-area, aside.sidebar nav a span { display: none; }
+            .main-wrapper { margin-left: 70px; }
+        }
+    </style>
 </head>
 <body>
 
-    <header class="topbar">
-        <a class="brand" href="products.html">ShopApp</a>
-
-        <nav>
-            <a href="products.html">المنتجات</a>
-            <a href="my-orders.html">طلباتي</a>
-            <button class="btn secondary" id="logoutBtn" type="button">
-                تسجيل الخروج
-            </button>
+    <aside class="sidebar">
+        <div class="brand-area" id="sidebarBrand">ShopApp</div>
+        <nav id="sidebarNav">
+            <!-- سيتم تعبئة القائمة ديناميكياً حسب نوع المستخدم عبر الـ JS -->
         </nav>
+    </aside>
 
-        <div class="actions">
-            <a href="checkout.html">🛒 سلة المشتريات</a>
+    <div class="main-wrapper">
+        <header class="topbar">
+            <a class="brand" href="products.html" id="topbarBrand">ShopApp Store</a>
+            <div class="actions-top">
+                <button class="btn secondary" id="logoutBtn" type="button" style="padding: 8px 15px; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                    Logout
+                </button>
+            </div>
+        </header>
 
-            <a
-                id="adminAddProduct"
-                class="btn"
-                href="admin.html"
-                style="display:none"
-            >
-                ＋ إضافة منتج
-            </a>
-        </div>
-    </header>
-
-    <main class="container">
-        <h1>المنتجات</h1>
-
-        <div id="notice" class="notice hidden"></div>
-
-        <section id="products" class="products-grid">
-            جاري تحميل المنتجات...
-        </section>
-    </main>
+        <main class="container">
+            <h1 style="color: #1e293b; margin-bottom: 20px;">Products</h1>
+            <div id="notice" class="notice hidden"></div>
+            <section id="products" class="products-grid">
+                Loading products...
+            </section>
+        </main>
+    </div>
 
     <script src="../assets/config.js"></script>
     <script src="../assets/api.js"></script>
-
     <script>
         const productsContainer = document.getElementById('products');
         const notice = document.getElementById('notice');
-
         let productsArray = [];
 
-        // التحقق من تسجيل الدخول
         if (requireLogin()) {
             initializePage();
         }
 
         function initializePage() {
             document.getElementById('logoutBtn').addEventListener('click', logout);
-
-            if (currentUser()?.role === 'admin') {
-                document.getElementById('adminAddProduct').style.display =
-                    'inline-block';
+            
+            const user = currentUser();
+            const isAdmin = user?.role === 'admin';
+            
+            const nav = document.getElementById('sidebarNav');
+            if (isAdmin) {
+                document.getElementById('sidebarBrand').textContent = 'Admin Panel';
+                document.getElementById('topbarBrand').textContent = 'ShopApp | Admin';
+                nav.innerHTML = `
+                    <a href="products.html" class="active">📦 <span>Products</span></a>
+                    <a href="admin.html#ordersSection">📋 <span>Customer Orders</span></a>
+                    <a href="admin.html">⚙️ <span>Add Product</span></a>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <a href="products.html" class="active">📦 <span>Products</span></a>
+                    <a href="my-orders.html">📋 <span>My Orders</span></a>
+                    <a href="checkout.html">🛒 <span>Cart</span></a>
+                `;
             }
 
             loadProducts();
         }
 
-        // جلب المنتجات من Laravel
         async function loadProducts() {
-            productsContainer.textContent = 'جاري تحميل المنتجات...';
-
+            productsContainer.textContent = 'Loading products...';
             try {
                 const response = await api('/api/v1/products');
-
                 productsArray = extractRows(response);
-
                 renderProducts();
-
             } catch (error) {
                 productsContainer.textContent = '';
                 msg(notice, error.message, true);
+                notice.classList.remove('hidden');
             }
         }
 
-        // عرض المنتجات
         function renderProducts() {
             if (!productsArray.length) {
-                productsContainer.textContent = 'لا توجد منتجات متاحة حاليًا';
+                productsContainer.textContent = 'No products available at the moment';
                 return;
             }
 
             productsContainer.innerHTML = productsArray.map(product => `
                 <article class="product-card">
-
-                    <a
-                        class="product-link"
-                        href="product.html?id=${Number(product.id)}"
-                    >
-                        <img
-                            src="${esc(
-                                product.image_url ||
-                                'https://placehold.co/500x300?text=ShopApp'
-                            )}"
-                            alt="${esc(product.name)}"
-                        >
-
+                    <a class="product-link" href="product.html?id=${Number(product.id)}">
+                        <img src="${esc(product.image_url || 'https://placehold.co/500x300?text=ShopApp')}" alt="${esc(product.name)}">
                         <div class="body">
-                            <b>${esc(product.name)}</b>
-
-                            <p>${esc(product.category || '')}</p>
-
-                            <div class="price">
-                                ${money(product.price)}
+                            <div>
+                                <b>${esc(product.name)}</b>
+                                <p>${esc(product.category || '')}</p>
                             </div>
+                            <div class="price">${money(product.price)}</div>
                         </div>
                     </a>
-
-                    <button
-                        class="btn add-to-cart"
-                        type="button"
-                        data-id="${Number(product.id)}"
-                        data-name="${esc(product.name)}"
-                        data-price="${Number(product.price || 0)}"
-                        data-image="${esc(product.image_url || '')}"
-                    >
-                        أضف إلى السلة
+                    <button class="btn add-to-cart" type="button" data-id="${Number(product.id)}" data-name="${esc(product.name)}" data-price="${Number(product.price || 0)}" data-image="${esc(product.image_url || '')}">
+                        Add to Cart
                     </button>
-
                 </article>
             `).join('');
         }
 
-        // إضافة المنتج إلى السلة
         productsContainer.addEventListener('click', event => {
             const button = event.target.closest('.add-to-cart');
-
             if (!button) return;
-
             event.preventDefault();
             event.stopPropagation();
-
             addToCart({
                 id: Number(button.dataset.id),
                 name: button.dataset.name,
                 price: Number(button.dataset.price),
                 image_url: button.dataset.image
             });
-
-            alert('تمت إضافة المنتج إلى السلة');
+            alert('Product added to cart');
         });
     </script>
-
 </body>
 </html>

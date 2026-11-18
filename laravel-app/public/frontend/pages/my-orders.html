@@ -1,797 +1,374 @@
-
 <!doctype html>
-<html lang="ar" dir="rtl">
-
+<html lang="en" dir="ltr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>طلباتي | ShopApp</title>
-
+    <title>My Orders | ShopApp</title>
     <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #1e293b;
+            --sidebar-color: #94a3b8;
+            --sidebar-active: #ffffff;
+            --sidebar-hover: #334155;
+            --primary-color: #6a994e;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            display: flex;
+            min-height: 100vh;
+            direction: ltr;
+            text-align: left;
+        }
+        aside.sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+        aside.sidebar .brand-area {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 35px;
+            text-align: center;
+        }
+        aside.sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        aside.sidebar nav a {
+            color: var(--sidebar-color);
+            text-decoration: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: 0.3s;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        aside.sidebar nav a:hover, aside.sidebar nav a.active {
+            background-color: var(--sidebar-hover);
+            color: var(--sidebar-active);
+        }
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        header.topbar {
+            background: #ffffff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            height: 70px;
+            box-sizing: border-box;
+        }
+        header.topbar .brand {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e293b;
+            text-decoration: none;
+        }
+        .container {
+            padding: 30px;
+            max-width: 1200px;
+            box-sizing: border-box;
+        }
+        .panel {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .notice { padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; }
+        .notice.hidden { display: none; }
+        @media (max-width: 900px) {
+            aside.sidebar { width: 70px; padding: 10px; }
+            aside.sidebar .brand-area, aside.sidebar nav a span { display: none; }
+            .main-wrapper { margin-left: 70px; }
+        }
+    </style>
 </head>
-
 <body>
 
-    <!-- =====================================
-         الشريط العلوي
-    ====================================== -->
-
-    <header class="topbar">
-
-        <a class="brand" href="products.html">
-            ShopApp
-        </a>
-
+    <aside class="sidebar">
+        <div class="brand-area">ShopApp</div>
         <nav>
-            <a href="products.html">المنتجات</a>
-
-            <a href="checkout.html">🛒 سلة المشتريات</a>
-
-            <button
-                class="btn secondary"
-                id="logoutBtn"
-                type="button"
-            >
-                تسجيل الخروج
-            </button>
+            <a href="products.html">📦 <span>Products</span></a>
+            <a href="my-orders.html" class="active">📋 <span>My Orders</span></a>
+            <a href="checkout.html">🛒 <span>Cart</span></a>
         </nav>
+    </aside>
 
-    </header>
+    <div class="main-wrapper">
+        <header class="topbar">
+            <a class="brand" href="products.html">ShopApp Store</a>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <!-- مؤشر السوكيت الملون في الأعلى مثل الأدمن -->
+                <div class="statusbar" style="display: flex; align-items: center; gap: 8px; font-size: 13px; background: #f1f5f9; padding: 6px 12px; border-radius: 20px;">
+                    <i id="socketDot" style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block;"></i>
+                    <span id="socketLabel" style="color: #334155; font-weight: 500;">Checking Soketi...</span>
+                </div>
+                <button class="btn secondary" id="logoutBtn" type="button" style="padding: 8px 15px; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                    Logout
+                </button>
+            </div>
+        </header>
 
-
-    <!-- =====================================
-         محتوى الصفحة
-    ====================================== -->
-
-    <main class="container">
-
-        <div class="section-head">
-
-            <div>
-                <h1>طلباتي</h1>
-
-                <p>
-                    يمكنك متابعة طلباتك ومعرفة حالتها وتفاصيل المنتجات.
-                </p>
+        <main class="container">
+            <div class="section-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h1 style="color: #1e293b; margin: 0 0 5px 0;">My Orders</h1>
+                    <p style="color: #64748b; margin: 0;">Track your orders and check their statuses.</p>
+                </div>
+                <button id="refreshBtn" class="btn secondary" type="button" style="background: #e2e8f0; color: #1e293b; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer;">
+                    ↻ Refresh Orders
+                </button>
             </div>
 
-            <button
-                id="refreshBtn"
-                class="btn secondary"
-                type="button"
-            >
-                ↻ تحديث الطلبات
-            </button>
+            <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
 
-        </div>
+            <section class="grid" id="orderStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                <div class="panel"><p style="margin: 0 0 5px 0; color: #64748b;">Total Orders</p><h2 id="totalOrders" style="margin: 0; color: var(--primary-color);">0</h2></div>
+                <div class="panel"><p style="margin: 0 0 5px 0; color: #64748b;">Pending Orders</p><h2 id="pendingOrders" style="margin: 0; color: var(--primary-color);">0</h2></div>
+                <div class="panel"><p style="margin: 0 0 5px 0; color: #64748b;">Confirmed Orders</p><h2 id="confirmedOrders" style="margin: 0; color: var(--primary-color);">0</h2></div>
+                <div class="panel"><p style="margin: 0 0 5px 0; color: #64748b;">Cancelled Orders</p><h2 id="cancelledOrders" style="margin: 0; color: var(--primary-color);">0</h2></div>
+            </section>
 
+            <section id="orders">
+                <div class="panel empty-state">Loading your orders...</div>
+            </section>
+        </main>
+    </div>
 
-        <!-- رسائل النجاح والأخطاء -->
-
-        <div
-            id="notice"
-            class="notice hidden"
-            role="status"
-            aria-live="polite"
-        ></div>
-
-
-        <!-- مؤشر الاتصال -->
-
-        <div class="statusbar">
-
-            <span
-                id="realtimeDot"
-                class="dot"
-            ></span>
-
-            <span id="realtimeText">
-                جاري الاتصال بالتحديثات المباشرة...
-            </span>
-
-        </div>
-
-
-        <!-- إحصائيات الطلبات -->
-
-        <section class="grid" id="orderStats">
-
-            <div class="panel">
-                <p>إجمالي الطلبات</p>
-                <h2 id="totalOrders">0</h2>
-            </div>
-
-            <div class="panel">
-                <p>طلبات قيد الانتظار</p>
-                <h2 id="pendingOrders">0</h2>
-            </div>
-
-            <div class="panel">
-                <p>طلبات مؤكدة</p>
-                <h2 id="confirmedOrders">0</h2>
-            </div>
-
-            <div class="panel">
-                <p>طلبات ملغاة</p>
-                <h2 id="cancelledOrders">0</h2>
-            </div>
-
-        </section>
-
-
-        <!-- قائمة الطلبات -->
-
-        <section id="orders">
-
-            <div class="panel empty-state">
-                جاري تحميل طلباتك...
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <!-- =====================================
-         ملفات JavaScript
-    ====================================== -->
-
-
-    <!-- مكتبة Pusher المطلوبة للاتصال بـ Soketi -->
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-
-    <!-- إعدادات المشروع -->
     <script src="../assets/config.js"></script>
-
-    <!-- دوال API وإدارة التوكن -->
     <script src="../assets/api.js"></script>
-
-    <!-- الاتصال بـ Soketi والاشتراك في القنوات -->
     <script src="../assets/realtime.js"></script>
-
-
     <script>
-
-        // =====================================
-        // 1. عناصر الصفحة والمتغيرات
-        // =====================================
-
-        const ordersContainer =
-            document.getElementById('orders');
-
-        const notice =
-            document.getElementById('notice');
-
-        const refreshButton =
-            document.getElementById('refreshBtn');
-
-        const realtimeDot =
-            document.getElementById('realtimeDot');
-
-        const realtimeText =
-            document.getElementById('realtimeText');
-
+        const ordersContainer = document.getElementById('orders');
+        const notice = document.getElementById('notice');
+        const refreshButton = document.getElementById('refreshBtn');
+        const socketDot = document.getElementById('socketDot');
+        const socketLabel = document.getElementById('socketLabel');
         let ordersArray = [];
-
         let realtimeInitialized = false;
 
-
-        // =====================================
-        // 2. التحقق من تسجيل الدخول
-        // =====================================
-
-        if (requireLogin()) {
-
-            document
-                .getElementById('logoutBtn')
-                .addEventListener('click', logout);
-
-            refreshButton.addEventListener(
-                'click',
-                loadMyOrders
-            );
-
-            loadMyOrders();
-
+        function updateSocketStatus(connected, text) {
+            socketDot.style.background = connected ? '#22c55e' : '#ef4444';
+            socketLabel.textContent = text;
         }
 
-
-        // =====================================
-        // 3. جلب طلبات العميل من Laravel
-        // =====================================
+        if (requireLogin()) {
+            if (currentUser()?.role === 'admin') {
+                location.href = 'admin.html';
+            }
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            refreshButton.addEventListener('click', loadMyOrders);
+            loadMyOrders();
+        }
 
         async function loadMyOrders() {
-
-            ordersContainer.innerHTML = `
-                <div class="panel empty-state">
-                    جاري تحميل طلباتك...
-                </div>
-            `;
-
+            ordersContainer.innerHTML = '<div class="panel empty-state">Loading your orders...</div>';
             refreshButton.disabled = true;
 
             try {
-
                 const response = await api('/api/v1/orders');
-
                 ordersArray = extractRows(response);
-
                 renderOrders();
-
                 renderStatistics();
 
-                // تهيئة الاتصال المباشر مرة واحدة
                 if (!realtimeInitialized) {
-
                     initializeRealtime();
-
                     realtimeInitialized = true;
-
                 }
-
             } catch (error) {
-
                 ordersContainer.innerHTML = '';
-
-                msg(
-                    notice,
-                    'تعذر تحميل الطلبات: ' + error.message,
-                    true
-                );
-
+                msg(notice, 'Failed to load orders: ' + error.message, true);
+                notice.classList.remove('hidden');
             } finally {
-
                 refreshButton.disabled = false;
-
             }
-
         }
-
-
-        // =====================================
-        // 4. عرض جميع الطلبات
-        // =====================================
 
         function renderOrders() {
-
             if (!ordersArray.length) {
-
                 ordersContainer.innerHTML = `
-                    <div class="panel empty-state">
-
-                        <h2>لا توجد طلبات حتى الآن</h2>
-
-                        <p>
-                            لم تقم بإنشاء أي طلب بعد.
-                        </p>
-
-                        <a
-                            href="products.html"
-                            class="btn"
-                        >
-                            تصفح المنتجات
-                        </a>
-
+                    <div class="panel empty-state" style="text-align: center; padding: 40px;">
+                        <h2>No orders yet</h2>
+                        <p>You haven't placed any orders yet.</p>
+                        <a href="products.html" class="btn" style="display: inline-block; margin-top: 15px; background: var(--primary-color); color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Browse Products</a>
                     </div>
                 `;
-
                 return;
-
             }
 
-            // ترتيب الطلبات من الأحدث إلى الأقدم
-            const sortedOrders = [...ordersArray].sort(
-                (a, b) => Number(b.id) - Number(a.id)
-            );
-
-            ordersContainer.innerHTML = sortedOrders.map(
-                order => renderOrder(order)
-            ).join('');
-
+            const sortedOrders = [...ordersArray].sort((a, b) => Number(b.id) - Number(a.id));
+            ordersContainer.innerHTML = sortedOrders.map(order => renderOrder(order)).join('');
         }
-
-
-        // =====================================
-        // 5. إنشاء بطاقة طلب
-        // =====================================
 
         function renderOrder(order) {
-
             const orderId = Number(order.id);
-
-            const items = Array.isArray(order.items)
-                ? order.items
-                : [];
-
+            const items = Array.isArray(order.items) ? order.items : [];
             const status = order.status || 'pending';
+            const createdAt = formatDate(order.created_at);
 
-            const createdAt = formatDate(
-                order.created_at
-            );
+            const itemsHTML = items.length ? items.map(item => {
+                const productName = item.product?.name || item.product_name || 'Product #' + item.product_id;
+                const quantity = Number(item.quantity || 0);
+                const price = Number(item.price ?? item.unit_price ?? item.product?.price ?? 0);
 
-            const itemsHTML = items.length
-
-                ? items.map(item => {
-
-                    const productName =
-                        item.product?.name ||
-                        item.product_name ||
-                        'منتج #' + item.product_id;
-
-                    const quantity =
-                        Number(item.quantity || 0);
-
-                    const price =
-                        Number(
-                            item.price ??
-                            item.unit_price ??
-                            item.product?.price ??
-                            0
-                        );
-
-                    return `
-                        <div class="order-item">
-
-                            <div class="order-item-info">
-
-                                <b>
-                                    ${esc(productName)}
-                                </b>
-
-                                <span>
-                                    الكمية: ${quantity}
-                                </span>
-
-                            </div>
-
-                            <div class="order-item-price">
-
-                                ${money(price * quantity)}
-
-                            </div>
-
+                return `
+                    <div class="order-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                        <div class="order-item-info">
+                            <b>${esc(productName)}</b>
+                            <span style="display: block; font-size: 13px; color: #64748b;">Quantity: ${quantity}</span>
                         </div>
-                    `;
-
-                }).join('')
-
-                : `
-                    <p class="text-muted">
-                        لا تتوفر تفاصيل المنتجات لهذا الطلب.
-                    </p>
+                        <div class="order-item-price" style="font-weight: bold;">${money(price * quantity)}</div>
+                    </div>
                 `;
-
+            }).join('') : '<p class="text-muted">No product details available for this order.</p>';
 
             return `
-
-                <article
-                    class="panel order-card"
-                    data-order-id="${orderId}"
-                >
-
-                    <!-- رأس الطلب -->
-
-                    <div class="order-header">
-
+                <article class="panel order-card" data-order-id="${orderId}" style="margin-bottom: 20px;">
+                    <div class="order-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
                         <div>
-
-                            <h2>
-                                الطلب #${orderId}
-                            </h2>
-
-                            <p class="text-muted">
-                                تاريخ الطلب: ${esc(createdAt)}
-                            </p>
-
+                            <h2 style="margin: 0 0 5px 0; font-size: 18px;">Order #${orderId}</h2>
+                            <p style="margin: 0; font-size: 13px; color: #64748b;">Date: ${esc(createdAt)}</p>
                         </div>
-
-                        <div
-                            class="order-status"
-                            data-order-status
-                        >
-                            ${renderStatus(status)}
-                        </div>
-
+                        <div class="order-status" data-order-status>${renderStatus(status)}</div>
                     </div>
-
-
-                    <!-- تفاصيل المنتجات -->
-
                     <div class="order-products">
-
-                        <h3>
-                            المنتجات
-                        </h3>
-
+                        <h3 style="font-size: 15px; margin-bottom: 10px;">Products</h3>
                         ${itemsHTML}
-
                     </div>
-
-
-                    <!-- إجمالي الطلب -->
-
-                    <div class="order-footer">
-
-                        <span>
-                            إجمالي الطلب
-                        </span>
-
-                        <strong>
-                            ${money(order.total_amount)}
-                        </strong>
-
+                    <div class="order-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; margin-top: 10px; font-size: 16px;">
+                        <span>Total Amount</span>
+                        <strong style="color: var(--primary-color); font-size: 18px;">${money(order.total_amount)}</strong>
                     </div>
-
                 </article>
-
             `;
-
         }
 
-
-        // =====================================
-        // 6. عرض حالة الطلب باللغة العربية
-        // =====================================
-
+        // شارة الحالة الملونة للزبون مثل الأدمن تماماً
         function renderStatus(status) {
-
-            const statuses = {
-
-                pending: {
-                    label: 'قيد الانتظار',
-                    className: 'pending'
-                },
-
-                confirmed: {
-                    label: 'تم التأكيد',
-                    className: 'confirmed'
-                },
-
-                cancelled: {
-                    label: 'ملغى',
-                    className: 'cancelled'
-                }
-
+            const styles = {
+                pending: 'background: #fef3c7; color: #d97706;',
+                confirmed: 'background: #d1fae5; color: #059669;',
+                cancelled: 'background: #fee2e2; color: #dc2626;'
             };
-
-            const selected =
-                statuses[status] || statuses.pending;
-
-            return `
-                <span class="badge ${selected.className}">
-                    ${selected.label}
-                </span>
-            `;
-
+            const labels = {
+                pending: 'Pending',
+                confirmed: 'Confirmed',
+                cancelled: 'Cancelled'
+            };
+            const currentStyle = styles[status] || styles.pending;
+            const label = labels[status] || status;
+            return `<span class="badge" style="padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; ${currentStyle} display: inline-block;">${label}</span>`;
         }
-
-
-        // =====================================
-        // 7. إحصائيات الطلبات
-        // =====================================
 
         function renderStatistics() {
-
             const total = ordersArray.length;
+            const pending = ordersArray.filter(o => o.status === 'pending').length;
+            const confirmed = ordersArray.filter(o => o.status === 'confirmed').length;
+            const cancelled = ordersArray.filter(o => o.status === 'cancelled').length;
 
-            const pending = ordersArray.filter(
-                order => order.status === 'pending'
-            ).length;
-
-            const confirmed = ordersArray.filter(
-                order => order.status === 'confirmed'
-            ).length;
-
-            const cancelled = ordersArray.filter(
-                order => order.status === 'cancelled'
-            ).length;
-
-
-            document.getElementById('totalOrders')
-                .textContent = total;
-
-            document.getElementById('pendingOrders')
-                .textContent = pending;
-
-            document.getElementById('confirmedOrders')
-                .textContent = confirmed;
-
-            document.getElementById('cancelledOrders')
-                .textContent = cancelled;
-
+            document.getElementById('totalOrders').textContent = total;
+            document.getElementById('pendingOrders').textContent = pending;
+            document.getElementById('confirmedOrders').textContent = confirmed;
+            document.getElementById('cancelledOrders').textContent = cancelled;
         }
-
-
-        // =====================================
-        // 8. تنسيق التاريخ
-        // =====================================
 
         function formatDate(value) {
-
-            if (!value) {
-                return 'غير محدد';
-            }
-
+            if (!value) return 'Not specified';
             const date = new Date(value);
-
-            if (Number.isNaN(date.getTime())) {
-                return String(value);
-            }
-
-            return new Intl.DateTimeFormat('ar', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            }).format(date);
-
+            if (Number.isNaN(date.getTime())) return String(value);
+            return new Intl.DateTimeFormat('en', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
         }
-
-
-        // =====================================
-        // 9. تحديث حالة طلب عند وصول حدث مباشر
-        // =====================================
 
         function handleOrderStatusChanged(data) {
-
-            if (!data || !data.order_id) {
-                return;
-            }
-
+            if (!data || !data.order_id) return;
             const orderId = Number(data.order_id);
-
-            const order = ordersArray.find(
-                item => Number(item.id) === orderId
-            );
-
+            const order = ordersArray.find(item => Number(item.id) === orderId);
             if (!order) {
-
-                // الطلب غير موجود في القائمة الحالية.
-                // نعيد جلب القائمة للتأكد من أحدث البيانات.
                 loadMyOrders();
-
                 return;
-
             }
-
-            // تحديث الحالة في البيانات المحلية
             order.status = data.to;
-
-            // تحديث شارة الحالة في بطاقة الطلب
-            const card = ordersContainer.querySelector(
-                `[data-order-id="${orderId}"]`
-            );
-
+            const card = ordersContainer.querySelector(`[data-order-id="${orderId}"]`);
             if (card) {
-
-                const statusElement = card.querySelector(
-                    '[data-order-status]'
-                );
-
-                if (statusElement) {
-
-                    statusElement.innerHTML =
-                        renderStatus(data.to);
-
-                }
-
+                const statusElement = card.querySelector('[data-order-status]');
+                if (statusElement) statusElement.innerHTML = renderStatus(data.to);
             }
-
-            // تحديث الإحصائيات
             renderStatistics();
-
-            msg(
-                notice,
-                `تم تحديث حالة الطلب #${orderId} إلى: ${
-                    renderStatusText(data.to)
-                }`
-            );
-
         }
-
-
-        function renderStatusText(status) {
-
-            const labels = {
-                pending: 'قيد الانتظار',
-                confirmed: 'تم التأكيد',
-                cancelled: 'ملغى'
-            };
-
-            return labels[status] || status;
-
-        }
-
-
-        // =====================================
-        // 10. الاتصال بالتحديثات المباشرة
-        // =====================================
-
 
         function initializeRealtime() {
             try {
-                if (
-                    typeof Pusher === 'undefined' ||
-                    typeof connectRealtime !== 'function' ||
-                    typeof subscribeToCustomerOrders !== 'function'
-                ) {
-                    setRealtimeStatus(
-                        false,
-                        'مكتبة التحديثات المباشرة غير محمّلة'
-                    );
-
-                    console.error('[Customer] Pusher or realtime functions missing');
+                if (typeof Pusher === 'undefined' || typeof connectRealtime !== 'function') {
+                    updateSocketStatus(false, 'Not Connected');
                     return;
                 }
 
                 const connection = connectRealtime();
 
-                if (!connection) {
-                    setRealtimeStatus(
-                        false,
-                        'تعذر إنشاء اتصال Soketi'
-                    );
+                if (!connection || !connection.connection) {
+                    updateSocketStatus(false, 'Not Connected');
                     return;
                 }
 
+                const socketConnection = connection.connection;
+
+                // الاشتراك في قناة طلبات الزبون
                 subscribeToCustomerOrders(
                     ordersArray,
                     handleOrderStatusChanged
                 );
 
-                setRealtimeStatus(
-                    false,
-                    'جاري الاتصال والاشتراك في قنوات طلباتك...'
-                );
+                function checkSocketState(state) {
+                    console.log('Soketi state:', state);
+
+                    if (state === 'connected') {
+                        updateSocketStatus(true, 'Soketi Connected');
+                    } else {
+                        updateSocketStatus(false, 'Not Connected');
+                    }
+                }
+
+                // فحص حالة الاتصال الحالية
+                checkSocketState(socketConnection.state);
+
+                // مراقبة حالات الاتصال باستمرار
+                socketConnection.bind('state_change', states => {
+                    checkSocketState(states.current);
+                });
 
             } catch (error) {
-                console.error('[Customer] Realtime initialization failed:', error);
-
-                setRealtimeStatus(
-                    false,
-                    'تعذر تهيئة التحديثات المباشرة'
-                );
+                console.error('Soketi connection error:', error);
+                updateSocketStatus(false, 'Not Connected');
             }
         }
-
-        // =====================================
-        // 11. عرض حالة الاتصال
-        // =====================================
-
-        function setRealtimeStatus(connected, message) {
-
-            realtimeText.textContent = message;
-
-            realtimeDot.classList.remove(
-                'ok',
-                'bad'
-            );
-
-            realtimeDot.classList.add(
-                connected ? 'ok' : 'bad'
-            );
-
-        }
-
     </script>
-
-
-    <!-- =====================================
-         تنسيقات خاصة بالصفحة
-    ====================================== -->
-
-    <style>
-
-        .order-card {
-            margin-top: 20px;
-        }
-
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            gap: 15px;
-            flex-wrap: wrap;
-
-            border-bottom: 1px solid var(--line);
-
-            padding-bottom: 15px;
-            margin-bottom: 18px;
-        }
-
-        .order-header h2 {
-            margin-bottom: 5px;
-        }
-
-        .order-header p {
-            margin-bottom: 0;
-            font-size: 13px;
-        }
-
-        .order-products h3 {
-            font-size: 17px;
-            margin-bottom: 12px;
-        }
-
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            gap: 15px;
-
-            padding: 12px 0;
-
-            border-bottom: 1px solid var(--line);
-        }
-
-        .order-item-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .order-item-info span {
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .order-item-price {
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-        .order-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            padding-top: 18px;
-            margin-top: 12px;
-
-            font-size: 17px;
-        }
-
-        .order-footer strong {
-            color: var(--g);
-            font-size: 20px;
-        }
-
-        #orderStats .panel {
-            margin-bottom: 0;
-        }
-
-        #orderStats .panel p {
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        #orderStats .panel h2 {
-            margin-bottom: 0;
-            color: var(--g);
-        }
-
-        @media (max-width: 600px) {
-
-            .order-header {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .order-item {
-                align-items: flex-start;
-            }
-
-            .order-footer {
-                font-size: 15px;
-            }
-
-        }
-
-    </style>
-
 </body>
 </html>

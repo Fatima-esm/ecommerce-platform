@@ -3,214 +3,99 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard</title>
+    <title>Add Product | Admin Panel</title>
     <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #1e293b;
+            --sidebar-color: #94a3b8;
+            --sidebar-active: #ffffff;
+            --sidebar-hover: #334155;
+            --primary-color: #6a994e;
+        }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; display: flex; min-height: 100vh; direction: ltr; text-align: left; }
+        aside.sidebar { width: var(--sidebar-width); background-color: var(--sidebar-bg); color: var(--sidebar-color); position: fixed; top: 0; bottom: 0; left: 0; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; z-index: 100; }
+        aside.sidebar .brand-area { font-size: 22px; font-weight: bold; color: #ffffff; margin-bottom: 35px; text-align: center; }
+        aside.sidebar nav { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+        aside.sidebar nav a { color: var(--sidebar-color); text-decoration: none; padding: 12px 15px; border-radius: 8px; transition: 0.3s; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+        aside.sidebar nav a:hover, aside.sidebar nav a.active { background-color: var(--sidebar-hover); color: var(--sidebar-active); }
+        .main-wrapper { margin-left: var(--sidebar-width); flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
+        header.topbar { background: #ffffff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); height: 70px; box-sizing: border-box; }
+        header.topbar .brand { font-size: 20px; font-weight: bold; color: #1e293b; text-decoration: none; }
+        .container { padding: 30px; max-width: 1000px; box-sizing: border-box; }
+        .panel { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+        .notice { padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; }
+        .notice.hidden { display: none; }
+        @media (max-width: 900px) { aside.sidebar { width: 70px; padding: 10px; } aside.sidebar .brand-area, aside.sidebar nav a span { display: none; } .main-wrapper { margin-left: 70px; } }
+    </style>
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <header class="topbar">
-        <a class="brand" href="admin.html">ShopApp | Admin</a>
+    <aside class="sidebar">
+        <div class="brand-area">Admin Panel</div>
         <nav>
-            <a href="products.html">Customer View</a> 
-            <button class="btn secondary" onclick="logout()">Logout</button>
+            <a href="products.html">📦 <span>Products</span></a>
+            <a href="admin-orders.html">📋 <span>Customer Orders</span></a>
+            <a href="admin.html" class="active">⚙️ <span>Add Product</span></a>
         </nav>
-    </header>
+    </aside>
 
-    <!-- Main Content -->
-    <main class="container">
-        <!-- Page Header with Socket Status -->
-        <div class="section-head">
-            <div>
-                <h1>Admin Dashboard</h1>
-                <p>Manage products and orders</p>
+    <div class="main-wrapper">
+        <header class="topbar">
+            <a class="brand" href="admin.html">Add Product Dashboard</a>
+            <button class="btn secondary" onclick="logout()" style="padding: 8px 15px; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Logout</button>
+        </header>
+
+        <main class="container">
+            <div class="section-head" style="margin-bottom: 25px;">
+                <h1 style="color: #1e293b; margin: 0 0 5px 0;">Add New Product</h1>
+                <p style="color: #64748b; margin: 0;">Create and publish a new product to the store</p>
             </div>
-            <div class="statusbar" data-socket-state>
-                <i class="dot"></i>
-                <span data-socket-label>Checking Soketi...</span>
-            </div>
-        </div>
 
-        <!-- Global Notice Box -->
-        <div id="notice" class="notice hidden"></div>
+            <div id="notice" class="notice hidden"></div>
 
-        <!-- Add Product Panel -->
-        <section class="panel">
-            <h2>Add Product</h2>
-            <form id="productForm">
-                <div class="row">
-                    <div>
-                        <label>Product Name</label>
-                        <input name="name" required>
+            <section class="panel">
+                <form id="productForm">
+                    <div class="row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div style="flex: 1;"><label>Product Name</label><input name="name" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 5px;"></div>
+                        <div style="flex: 1;"><label>Price</label><input name="price" type="number" step="0.01" min="0" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 5px;"></div>
                     </div>
-                    <div>
-                        <label>Price</label>
-                        <input name="price" type="number" step="0.01" min="0" required>
+                    <div class="row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div style="flex: 1;"><label>Category</label><input name="category" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 5px;"></div>
+                        <div style="flex: 1;"><label>Initial Stock</label><input name="stock" type="number" min="0" value="1" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 5px;"></div>
                     </div>
-                </div>
-                <div class="row">
-                    <div>
-                        <label>Category</label>
-                        <input name="category" required>
-                    </div>
-                    <div>
-                        <label>Initial Stock</label>
-                        <input name="stock" type="number" min="0" value="1" required>
-                    </div>
-                </div>
-                <label>Description</label>
-                <textarea name="description"></textarea>
-                
-                <label>Image</label>
-                <input name="image" type="file" accept="image/png,image/jpeg">
-                
-                <button class="btn">Add Product</button>
-            </form>
-        </section>
+                    <label>Description</label>
+                    <textarea name="description" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 5px; margin-bottom: 15px; height: 80px;"></textarea>
+                    
+                    <label>Product Image</label>
+                    <input name="image" type="file" accept="image/png,image/jpeg" style="display: block; margin-top: 5px; margin-bottom: 20px;">
+                    
+                    <button class="btn" style="background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Save Product</button>
+                </form>
+            </section>
+        </main>
+    </div>
 
-        <!-- Orders Management Panel -->
-        <section class="panel">
-            <div class="section-head">
-                <h2>Orders</h2>
-                <button class="btn secondary" onclick="loadOrders()">Refresh from API</button>
-            </div>
-            <p class="small muted">Manual refresh is a fallback; real-time events do not rely on polling.</p>
-            
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Customer</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody">
-                        <tr><td colspan="5">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <!-- Scripts and Pusher Library -->
     <script src="../assets/config.js"></script>
     <script src="../assets/api.js"></script>
-    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
-    <script src="../assets/realtime.js"></script>
-    <!-- Page Controller Script -->
     <script>
-        // Check admin authorization on load
         if (requireAdmin()) {
-            loadOrders();
-            // Bind real-time events for admin (reload orders on new events)
-            connectRealtime({
-                onCreated: (data) => {
-                    console.log('New order received:', data);
-                    // إعادة تحميل قائمة الطلبات من API
-                    loadOrders();
-                },
-                onStatus: (data) => {
-                    console.log('Order status changed:', data);
-                    // تحديث قائمة الطلبات
-                    loadOrders();
+            productForm.onsubmit = async e => {
+                e.preventDefault();
+                try {
+                    let d = await api('/api/v1/admin/products', {
+                        method: 'POST',
+                        body: new FormData(productForm)
+                    });
+                    msg(notice, d.message || 'Product added successfully');
+                    notice.classList.remove('hidden');
+                    productForm.reset();
+                } catch (x) {
+                    msg(notice, x.message, true);
+                    notice.classList.remove('hidden');
                 }
-            });
+            };
         }
-
-        // Handle add product form submission
-        productForm.onsubmit = async e => {
-            e.preventDefault();
-            try {
-                let d = await api('/api/v1/admin/products', {
-                    method: 'POST',
-                    body: new FormData(productForm)
-                });
-                msg(notice, d.message || 'Product added successfully');
-                productForm.reset();
-            } catch (x) {
-                msg(notice, x.message, true);
-            }
-        };
-
-        // Fetch and display orders in table
-
-async function loadOrders() {
-    const tbody = document.getElementById('tbody');
-
-    try {
-        const response = await api('/api/v1/admin/orders');
-        const orders = extractRows(response);
-
-        if (!orders.length) {
-            tbody.innerHTML =
-                '<tr><td colspan="5">No orders found</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = orders.map(order => `
-            <tr>
-                <td>#${Number(order.id)}</td>
-
-                <td>
-                    ${esc(order.user?.name || ('User ' + order.user_id))}
-                </td>
-
-                <td>${money(order.total_amount)}</td>
-
-                <td>${badge(order.status)}</td>
-
-                <td class="actions">
-                    ${
-                        order.status === 'pending'
-                            ? `<button class="btn"
-                                onclick="changeStatus(${Number(order.id)}, 'confirmed')">
-                                Confirm
-                            </button>`
-                            : ''
-                    }
-
-                    ${
-                        order.status !== 'cancelled'
-                            ? `<button class="btn danger"
-                                onclick="changeStatus(${Number(order.id)}, 'cancelled')">
-                                Cancel
-                            </button>`
-                            : ''
-                    }
-                </td>
-            </tr>
-        `).join('');
-
-    } catch (error) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5">${esc(error.message)}</td>
-            </tr>
-        `;
-    }
-}
-
-        // Update order status (confirm or cancel)
-
-async function changeStatus(id, status) {
-    try {
-        await api(`/api/v1/admin/orders/${id}/status`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ status })
-        });
-
-        msg(notice, 'تم تحديث الطلب #' + id + ' بنجاح');
-
-        await loadOrders();
-
-    } catch (error) {
-        msg(notice, error.message, true);
-    }
-}    </script>
+    </script>
 </body>
 </html>
