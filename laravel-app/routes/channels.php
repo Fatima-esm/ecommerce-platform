@@ -15,8 +15,7 @@ use App\Modules\Orders\Models\Order;
             return false;
         }
 
-        return (int) $user->id === (int) $order->user_id
-            || $user->isAdmin();
+        return (int) $user->id === (int) $order->user_id || $user->isAdmin();
     });
 
     Broadcast::channel('admin.orders', function ($user) {

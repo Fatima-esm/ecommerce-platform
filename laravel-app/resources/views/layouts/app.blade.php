@@ -37,8 +37,8 @@
     <aside class="sidebar">
         <div class="brand-area" id="sidebarBrand">ShopApp</div>
         <nav id="sidebarNav">
-            <a href="/products">📦 <span>Products</span></a>
-            <a href="/my-orders">📋 <span>My Orders</span></a>
+            <a href="/products"> <span>Products</span></a>
+            <a href="/my-orders"> <span>My Orders</span></a>
             <a href="/checkout">🛒 <span>Cart</span></a>
         </nav>
     </aside>
@@ -70,9 +70,9 @@
                 if (user?.role === 'admin') {
                     document.getElementById('sidebarBrand').textContent = 'Admin Panel';
                     document.getElementById('sidebarNav').innerHTML = `
-                        <a href="/admin/products">📦 <span>Products</span></a>
-                        <a href="/admin/orders">📋 <span>Customer Orders</span></a>
-                        <a href="/admin/add">⚙️ <span>Add Product</span></a>
+                        <a href="/admin/products"> <span>Products</span></a>
+                        <a href="/admin/orders"> <span>Customer Orders</span></a>
+                        <a href="/admin/add"> <span>Add Product</span></a>
                     `;
                 }
             }

@@ -2,9 +2,13 @@
 
 namespace App\Modules\Orders\Controllers;
 
+use App\Modules\Notifications\Jobs\SendOrderConfirmationEmail;
+use App\Modules\Notifications\Jobs\SendOrderStatusEmail;
+use App\Modules\Orders\Events\OrderCreated;
+use App\Modules\Orders\Events\OrderStatusChanged;
 use App\Modules\Orders\Models\Order;
-use App\Modules\Products\Models\Product;
 use App\Modules\Orders\Models\OrderItem;
+use App\Modules\Products\Models\Product;
 use App\Modules\Products\Services\ProductCatalog;
 use App\Services\InventoryGrpcClient;
 use App\Support\ApiErrors;
@@ -12,12 +16,9 @@ use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
-use App\Modules\Notifications\Jobs\SendOrderConfirmationEmail;
-use App\Modules\Notifications\Jobs\SendOrderStatusEmail;
-use Illuminate\Support\Str;
-use App\Modules\Orders\Events\OrderCreated;
-use App\Modules\Orders\Events\OrderStatusChanged;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -32,7 +33,7 @@ class OrderController extends Controller
         $orders = Order::where('user_id', auth()->id())
             ->with('items.product')
             ->latest()
-             ->paginate(10);
+            ->paginate(10);
 
         return ApiResponse::success($orders, 'Orders retrieved successfully');
     }
@@ -46,6 +47,7 @@ class OrderController extends Controller
                 'Only admin can access all orders'
             );
         }
+
         $query = Order::with(['user', 'items.product']);
 
         if ($request->filled('status')) {
@@ -59,7 +61,7 @@ class OrderController extends Controller
             'All orders retrieved successfully'
         );
     }
-    
+
     public function show(Request $request, $id)
     {
         $user = $request->user();
@@ -93,6 +95,7 @@ class OrderController extends Controller
             $product = Product::findOrFail($row['product_id']);
             $qty = (int) $row['quantity'];
             $total += $product->price * $qty;
+
             $reserveItems[] = [
                 'product_id' => (int) $product->id,
                 'quantity'   => $qty,
@@ -113,9 +116,9 @@ class OrderController extends Controller
 
         if (empty($reserve['success'])) {
             return ApiErrors::json(
-                409, 
-                'INSUFFICIENT_STOCK', 
-                $reserve['message'] ?? 'Insufficient stock', 
+                409,
+                'INSUFFICIENT_STOCK',
+                $reserve['message'] ?? 'Insufficient stock',
                 $reserve['failed_items'] ?? []
             );
         }
@@ -149,17 +152,31 @@ class OrderController extends Controller
             return ApiErrors::json(500, 'INTERNAL_ERROR', 'Failed to save order, stock released');
         }
 
-        SendOrderConfirmationEmail::dispatch($order->id)
-            ->onConnection('rabbitmq')
-            ->onQueue('emails')
-            ->afterCommit();
+        try {
+            SendOrderConfirmationEmail::dispatch($order->id)
+                ->onConnection('rabbitmq')
+                ->onQueue('emails')
+                ->afterCommit();
+        } catch (\Throwable $e) {
+            Log::warning('Failed to dispatch SendOrderConfirmationEmail to RabbitMQ', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
 
-        Event::dispatch(new OrderCreated(
-            userId: (int) $order->user_id,
-            orderId: (int) $order->id,
-            status: (string) $order->status,
-            totalAmount: (float) $order->total_amount,
-        ));
+        try {
+            Event::dispatch(new OrderCreated(
+                userId: (int) $order->user_id,
+                orderId: (int) $order->id,
+                status: (string) $order->status,
+                totalAmount: (float) $order->total_amount,
+            ));
+        } catch (\Throwable $e) {
+            Log::warning('Failed to dispatch OrderCreated event', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
 
         return ApiResponse::success($order, 'Order placed successfully', 201);
     }
@@ -186,16 +203,23 @@ class OrderController extends Controller
         } catch (\Throwable $e) {
             return ApiErrors::json(503, 'INVENTORY_UNAVAILABLE', 'Failed to release stock');
         }
-        $from = $order->status;
 
+        $from = $order->status;
         $order->update(['status' => 'cancelled']);
 
-        Event::dispatch(new OrderStatusChanged(
-            userId: (int) $order->user_id,
-            orderId: (int) $order->id,
-            from: $from, 
-            to: 'cancelled'
-        ));
+        try {
+            Event::dispatch(new OrderStatusChanged(
+                userId: (int) $order->user_id,
+                orderId: (int) $order->id,
+                from: $from,
+                to: 'cancelled'
+            ));
+        } catch (\Throwable $e) {
+            Log::warning('Failed to dispatch OrderStatusChanged event on cancel', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
 
         return ApiResponse::success($order, 'Order cancelled and stock restored');
     }
@@ -216,19 +240,20 @@ class OrderController extends Controller
         if (!$user->isAdmin()) {
             return ApiErrors::json(403, 'FORBIDDEN', 'Only admin can change order status');
         }
+
         $currentStatus = $order->status;
         $newStatus = $data['status'];
 
         $allowedTransitions = [
             'pending'   => ['confirmed', 'cancelled'],
             'confirmed' => ['cancelled'],
-            'cancelled' => [], 
+            'cancelled' => [],
         ];
 
         if (!in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])) {
             return ApiErrors::json(
-                422, 
-                'INVALID_TRANSITION', 
+                422,
+                'INVALID_TRANSITION',
                 "Cannot transition order status from '{$currentStatus}' to '{$newStatus}'"
             );
         }
@@ -243,19 +268,32 @@ class OrderController extends Controller
 
         $order->update(['status' => $newStatus]);
 
-        Event::dispatch(new OrderStatusChanged(
-            userId: (int) $order->user_id,
-            orderId: (int) $order->id,
-            from: $currentStatus,
-            to: $newStatus,
-        ));
+        try {
+            Event::dispatch(new OrderStatusChanged(
+                userId: (int) $order->user_id,
+                orderId: (int) $order->id,
+                from: $currentStatus,
+                to: $newStatus,
+            ));
+        } catch (\Throwable $e) {
+            Log::warning('Failed to dispatch OrderStatusChanged event', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
 
-        SendOrderStatusEmail::dispatch($order->id, $newStatus)
-            ->onConnection('rabbitmq')
-            ->onQueue('emails')
-            ->afterCommit();
-
+        try {
+            SendOrderStatusEmail::dispatch($order->id, $newStatus)
+                ->onConnection('rabbitmq')
+                ->onQueue('emails')
+                ->afterCommit();
+        } catch (\Throwable $e) {
+            Log::warning('Failed to dispatch SendOrderStatusEmail to RabbitMQ', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
 
         return ApiResponse::success($order->fresh('items.product'), 'Status updated successfully');
     }
-    }
+}
