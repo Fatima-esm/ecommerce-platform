@@ -2,7 +2,7 @@
 
 namespace App\Modules\Notifications\Jobs;
 
-use App\Modules\Orders\Models\Order; // المسار الصحيح
+use App\Modules\Orders\Models\Order; 
 use App\Modules\Notifications\Mail\OrderConfirmationMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -44,7 +44,7 @@ class SendOrderConfirmationEmail implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        Log::error('Order confirmation email failed', [
+        Log::error('Orfffder confirmation email failed', [
             'order_id' => $this->orderId,
             'error' => $exception->getMessage(),
         ]);

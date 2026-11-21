@@ -37,9 +37,9 @@
     <aside class="sidebar">
         <div class="brand-area" id="sidebarBrand">ShopApp</div>
         <nav id="sidebarNav">
-            <a href="/products"> <span>Products</span></a>
-            <a href="/my-orders"> <span>My Orders</span></a>
-            <a href="/checkout">🛒 <span>Cart</span></a>
+            <a href="/products">📱 <span>Products</span></a>
+            <a href="/my-orders"> 📄 <span>My Orders</span></a>
+            <a href="/checkout"> 🛒 <span>Cart</span></a>
         </nav>
     </aside>
 

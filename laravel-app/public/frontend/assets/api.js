@@ -1,7 +1,4 @@
 
-// ==========================================
-// 1. إعدادات الاتصال والبيانات الأساسية
-// ==========================================
 
 const API = (
     window.APP_CONFIG?.API_BASE_URL ||
@@ -13,17 +10,11 @@ const UK = 'user';
 const CART_KEY = 'shopapp_cart';
 
 
-// ==========================================
-// 2. إدارة الجلسة والمستخدم
-// ==========================================
-
-// قراءة التوكن من جلسة التبويب الحالي
 function token() {
     return sessionStorage.getItem(TK) || '';
 }
 
 
-// قراءة بيانات المستخدم من جلسة التبويب الحالي
 function currentUser() {
     try {
         return JSON.parse(sessionStorage.getItem(UK) || 'null');
@@ -33,7 +24,6 @@ function currentUser() {
 }
 
 
-// حفظ التوكن وبيانات المستخدم في جلسة التبويب الحالي
 function saveSession(data) {
     const response = data?.data ?? data;
 
