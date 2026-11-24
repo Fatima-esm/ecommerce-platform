@@ -40,7 +40,7 @@ class ApiErrors
         }
 
         //to certainly show debug details in development, but not in production. You can toggle this based on your environment.
-        $showDebugDetails = false; //false after testing in production
+        $showDebugDetails = true; //false after testing in production
 
         if ($showDebugDetails) {
             return self::json(500, 'INTERNAL_ERROR', $e->getMessage(), [

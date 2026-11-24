@@ -29,7 +29,7 @@ class ProductController extends Controller
         return response()->json($products);
     }
 
-    // تفاصيل منتج + الكمية من خدمة المستودع عبر gRPC
+    // تفاصيل منتج + الكمية من خدمة المستودع عبر gRPC + توفر المنتج
     public function show(int $product)
     {
         $model = Product::find($product);
@@ -38,24 +38,27 @@ class ProductController extends Controller
             return ApiErrors::json(404, 'NOT_FOUND', 'Product not found');
         }
 
-        $payload = $model->toArray();
-
         try {
             $stock = app(\App\Services\InventoryGrpcClient::class)
                 ->getStock($model->id);
 
-            $payload['stock'] = ($stock['found'] ?? false)
-                ? ($stock['available'] ?? 0)
+            $quantity = ($stock['found'] ?? false)
+                ? max(0, (int) ($stock['available'] ?? 0))
                 : 0;
+
+            $model->stockQuantity = $quantity;
+            $payload = $model->toArray();
+            $payload['stock'] = $quantity;
             $payload['stockStatus'] = 'OK';
         } catch (\Throwable $e) {
+            $model->stockQuantity = null;
+            $payload = $model->toArray();
             $payload['stock'] = null;
             $payload['stockStatus'] = 'UNKNOWN';
         }
 
         return response()->json($payload);
     }
-
     // إضافة منتج مع صورة (Admin فقط)
     public function store(Request $request)
     {

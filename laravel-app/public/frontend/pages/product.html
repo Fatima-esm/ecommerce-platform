@@ -94,11 +94,54 @@
             box-sizing: border-box;
         }
         .panel {
+            position: relative;
             background: #ffffff;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
+        }
+        .stock-corner-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            z-index: 5;
+        }
+        .stock-corner-badge.available {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        .stock-corner-badge.unavailable {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .stock-corner-badge.unknown {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+        .stock-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #334155;
+            margin-bottom: 18px;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed !important;
         }
         .notice { padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; }
         .notice.hidden { display: none; }
@@ -198,8 +241,54 @@
             }
         }
 
+        function getStockState(product) {
+            const rawStock = product.stock ?? product.stockQuantity;
+            const hasNumericStock = rawStock !== null && rawStock !== undefined && !Number.isNaN(Number(rawStock));
+            const stockCount = hasNumericStock ? Math.max(0, Number(rawStock)) : null;
+
+            if (product.is_available === false || (stockCount !== null && stockCount <= 0)) {
+                return {
+                    available: false,
+                    stockCount: stockCount ?? 0,
+                    badgeClass: 'unavailable',
+                    badgeText: 'Out of Stock',
+                    stockText: stockCount !== null ? `${stockCount} units` : '0 units',
+                    helperText: 'This product is currently out of stock and cannot be added to the cart.'
+                };
+            }
+
+            if (product.is_available === true || (stockCount !== null && stockCount > 0)) {
+                return {
+                    available: true,
+                    stockCount: stockCount,
+                    badgeClass: 'available',
+                    badgeText: 'Available',
+                    stockText: stockCount !== null ? `${stockCount} units available` : 'Available',
+                    helperText: ''
+                };
+            }
+
+            return {
+                available: false,
+                stockCount: null,
+                badgeClass: 'unknown',
+                badgeText: 'Stock Unknown',
+                stockText: 'Unavailable',
+                helperText: 'Stock information is temporarily unavailable. Adding to cart is disabled.'
+            };
+        }
+
         function renderProduct() {
+            const stockInfo = getStockState(currentProduct);
+            const maxAttr = stockInfo.stockCount !== null && stockInfo.stockCount > 0
+                ? `max="${stockInfo.stockCount}"`
+                : '';
+
             detail.innerHTML = `
+                <div class="stock-corner-badge ${stockInfo.badgeClass}" id="stockCornerBadge">
+                    ${esc(stockInfo.badgeText)}
+                </div>
+
                 <div class="product-details" style="display: flex; gap: 30px; flex-wrap: wrap;">
                     <div class="product-image" style="flex: 1; min-width: 280px;">
                         <img src="${esc(currentProduct.image_url || 'https://placehold.co/600x400?text=ShopApp')}" alt="${esc(currentProduct.name)}" style="width: 100%; border-radius: 8px; object-fit: cover;">
@@ -208,38 +297,59 @@
                         <h1 style="margin-top: 0; color: #1e293b;">${esc(currentProduct.name)}</h1>
                         <p style="color: #64748b; font-size: 14px;"><strong>Category:</strong> ${esc(currentProduct.category || 'Uncategorized')}</p>
                         <p style="color: #334155; line-height: 1.6;">${esc(currentProduct.description || 'No description available for this product')}</p>
-                        <h2 class="price" style="color: var(--primary-color); font-size: 24px; margin: 20px 0;">${money(currentProduct.price)}</h2>
+                        <h2 class="price" style="color: var(--primary-color); font-size: 24px; margin: 20px 0 12px;">${money(currentProduct.price)}</h2>
+
+                        <div class="stock-meta">
+                            <strong>Stock:</strong>
+                            <span id="stockAmountText">${esc(stockInfo.stockText)}</span>
+                        </div>
                         
                         <div style="margin-bottom: 20px;">
                             <label for="quantity" style="display: block; margin-bottom: 5px; font-weight: 500;">Quantity:</label>
-                            <input id="quantity" type="number" min="1" value="1" style="width: 80px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center;">
+                            <input id="quantity" type="number" min="1" ${maxAttr} value="1" ${!stockInfo.available ? 'disabled' : ''} style="width: 90px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center;">
                         </div>
 
                         <div class="actions" style="display: flex; gap: 10px;">
-                            <button id="addToCartBtn" class="btn" type="button" style="background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Add to Cart</button>
-                            <button id="buyNowBtn" class="btn secondary" type="button" style="background: #e2e8f0; color: #1e293b; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Go to Cart</button>
+                            <button id="addToCartBtn" class="btn" type="button" ${!stockInfo.available ? 'disabled' : ''} style="background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Add to Cart</button>
+                            <button id="buyNowBtn" class="btn secondary" type="button" ${!stockInfo.available ? 'disabled' : ''} style="background: #e2e8f0; color: #1e293b; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Go to Cart</button>
                         </div>
+
+                        ${stockInfo.helperText ? `<p id="stockWarningText" style="margin-top: 12px; color: #b91c1c; font-size: 13px; font-weight: 500;">${esc(stockInfo.helperText)}</p>` : ''}
                     </div>
                 </div>
             `;
 
-            document.getElementById('addToCartBtn').addEventListener('click', addCurrentProduct);
-            document.getElementById('buyNowBtn').addEventListener('click', goToCheckout);
+            const addBtn = document.getElementById('addToCartBtn');
+            const buyBtn = document.getElementById('buyNowBtn');
+
+            if (stockInfo.available) {
+                addBtn.addEventListener('click', () => addCurrentProduct(stockInfo.stockCount));
+                buyBtn.addEventListener('click', () => {
+                    location.href = 'checkout.html';
+                });
+            }        
         }
 
-        function addCurrentProduct() {
-            if (!currentProduct) return;
+        function addCurrentProduct(maxStock = null) {
+            const stockInfo = getStockState(currentProduct);
+            if (!currentProduct || !stockInfo.available) {
+                alert('This product is out of stock.');
+                return;
+            }
+
             const quantityInput = document.getElementById('quantity');
-            const quantity = Math.max(1, Number(quantityInput.value) || 1);
+            let quantity = Math.max(1, Number(quantityInput.value) || 1);
+
+            if (maxStock !== null && quantity > maxStock) {
+                quantity = maxStock;
+                quantityInput.value = maxStock;
+                alert(`Maximum available stock is ${maxStock}.`);
+            }
+
             addToCart(currentProduct, quantity);
             alert('Product added to cart');
         }
 
-        function goToCheckout() {
-            if (!currentProduct) return;
-            addCurrentProduct();
-            location.href = 'checkout.html';
-        }
     </script>
 </body>
 </html>

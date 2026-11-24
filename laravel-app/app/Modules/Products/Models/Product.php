@@ -18,7 +18,7 @@ class Product extends Model
         'price' => 'decimal:2',
     ];
 
-    protected $appends = ['image_url'];
+    protected $appends = ['image_url', 'is_available',];
 
     // public function getImageUrlAttribute(): ?string
     // {
@@ -26,6 +26,15 @@ class Product extends Model
     //         ? asset('storage/' . $this->image_path)
     //         : null;
     // }
+
+    public function getIsAvailableAttribute(): ?bool
+    {
+        if ($this->stockQuantity === null) {
+            return null;
+        }
+
+        return $this->stockQuantity > 0;
+    }
 
     public function getImageUrlAttribute(): ?string
     {
@@ -45,14 +54,9 @@ class Product extends Model
             $path = substr($path, strlen('public/'));
         }
 
-        if (str_starts_with($path, 'assets/')) {
-            return asset($path);
+        if (str_starts_with($path, 'assets/') || str_starts_with($path, 'storage/')) {
+            return '/' . $path;
         }
 
-        if (str_starts_with($path, 'storage/')) {
-            return asset($path);
-        }
-
-        return asset('storage/' . $path);
-    }
-}
+        return '/storage/' . $path;
+    }}

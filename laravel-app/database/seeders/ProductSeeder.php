@@ -220,15 +220,16 @@ class ProductSeeder extends Seeder
             $stock = $data['stock'];
             unset($data['stock']);
 
-            $product = Product::create($data);
+            $product = Product::updateOrCreate(
+                ['name' => $data['name']],
+                $data
+            );
 
             try {
                 $inventory->setStock($product->id, $stock);
             } catch (\Throwable $e) {
-                $this->command?->warn("Product {$product->id} created but stock sync failed");
+                $this->command?->warn("Product {$product->id} synced/created but stock sync failed");
             }
-        }
-
-        $this->command?->info('20 products seeded successfully.');
+        }}
+        
     }
-}

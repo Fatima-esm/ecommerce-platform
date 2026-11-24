@@ -50,10 +50,11 @@ services:
     ports:
       - "9090:9090"
 
-  # التطبيق الأساسي (Laravel) -> http://127.0.0.1:8088
+  # التطبيق الأساسي (Laravel) -> يُوزّع عبر Nginx على http://127.0.0.1:8088
   laravel:
     build: ./laravel-app
-    container_name: laravel
+    deploy:
+      replicas: 3
     environment:
       APP_ENV: local
       APP_DEBUG: "${APP_DEBUG:-true}"
@@ -68,16 +69,59 @@ services:
       INVENTORY_GRPC_PORT: 9090
       INVENTORY_GRPC_TIMEOUT: 3
       PHP_CLI_SERVER_WORKERS: "4"
+      QUEUE_CONNECTION: rabbitmq
+
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: shop
+      RABBITMQ_PASSWORD: shop
+      RABBITMQ_VHOST: /
+      RABBITMQ_QUEUE: emails
+
+      MAIL_MAILER: "${MAIL_MAILER:-smtp}"
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: "${MAIL_USERNAME}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD}"
+      MAIL_ENCRYPTION: tls
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
+
+      BROADCAST_CONNECTION: pusher
+      PUSHER_APP_ID: ecommerce
+      PUSHER_APP_KEY: ecommerce-key
+      PUSHER_APP_SECRET: ecommerce-secret
+      PUSHER_HOST: soketi
+      PUSHER_PORT: 6001
+      PUSHER_SCHEME: http
+      PUSHER_APP_CLUSTER: mt1
+
+      LOG_CHANNEL: stack
+      LOG_STACK: stderr
+
     depends_on:
       laravel-db:
         condition: service_healthy
       inventory:
         condition: service_started
-    ports:
-      - "8088:8000"
+    expose:
+      - "8000"
     volumes:
       - ./laravel-app:/var/www/html
       - uploads:/var/www/html/storage/app/public
+    restart: unless-stopped
+
+  # موزّع الأحمال (Nginx)
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx-lb
+    ports:
+      - "8088:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - laravel
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -118,14 +162,14 @@ services:
       RABBITMQ_PASSWORD: shop
       RABBITMQ_VHOST: /
       RABBITMQ_QUEUE: emails
-      MAIL_MAILER: smtp
+      MAIL_MAILER: "${MAIL_MAILER:-smtp}"
       MAIL_HOST: smtp.gmail.com
       MAIL_PORT: 587
-      MAIL_USERNAME: solaimanesmaeel334@gmail.com
-      MAIL_PASSWORD: unlrpsubwjbrqjee
+      MAIL_USERNAME: "${MAIL_USERNAME}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD}"
       MAIL_ENCRYPTION: tls
-      MAIL_FROM_ADDRESS: shop@gmail.com
-      MAIL_FROM_NAME: ShopApp
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
       BROADCAST_CONNECTION: pusher
       PUSHER_APP_ID: ecommerce
       PUSHER_APP_KEY: ecommerce-key
@@ -134,6 +178,8 @@ services:
       PUSHER_PORT: 6001
       PUSHER_SCHEME: http
       PUSHER_APP_CLUSTER: mt1
+      LOG_CHANNEL: stack
+      LOG_STACK: stderr
     depends_on:
       rabbitmq:
         condition: service_healthy

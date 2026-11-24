@@ -158,8 +158,12 @@
             color: var(--primary-color);
             margin-top: auto;
         }
-        article.product-card .add-to-cart {
+        article.product-card .product-details-btn {
+            display: block;
             width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            text-decoration: none;
             background-color: var(--primary-color);
             color: white;
             border: none;
@@ -169,7 +173,7 @@
             font-weight: 600;
             transition: background 0.2s;
         }
-        article.product-card .add-to-cart:hover {
+        article.product-card .product-details-btn:hover {
             background-color: #386641;
         }
         .notice { padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; }
@@ -222,10 +226,10 @@
 
         function initializePage() {
             document.getElementById('logoutBtn').addEventListener('click', logout);
-            
+
             const user = currentUser();
             const isAdmin = user?.role === 'admin';
-            
+
             const nav = document.getElementById('sidebarNav');
             if (isAdmin) {
                 document.getElementById('sidebarBrand').textContent = 'Admin Panel';
@@ -265,38 +269,27 @@
                 return;
             }
 
-            productsContainer.innerHTML = productsArray.map(product => `
-                <article class="product-card">
-                    <a class="product-link" href="product.html?id=${Number(product.id)}">
-                        <img src="${esc(product.image_url || 'https://placehold.co/500x300?text=ShopApp')}" alt="${esc(product.name)}">
-                        <div class="body">
-                            <div>
-                                <b>${esc(product.name)}</b>
-                                <p>${esc(product.category || '')}</p>
+            productsContainer.innerHTML = productsArray.map(product => {
+                const productId = Number(product.id);
+                return `
+                    <article class="product-card">
+                        <a class="product-link" href="product.html?id=${productId}">
+                            <img src="${esc(product.image_url || 'https://placehold.co/500x300?text=ShopApp')}" alt="${esc(product.name)}">
+                            <div class="body">
+                                <div>
+                                    <b>${esc(product.name)}</b>
+                                    <p>${esc(product.category || '')}</p>
+                                </div>
+                                <div class="price">${money(product.price)}</div>
                             </div>
-                            <div class="price">${money(product.price)}</div>
-                        </div>
-                    </a>
-                    <button class="btn add-to-cart" type="button" data-id="${Number(product.id)}" data-name="${esc(product.name)}" data-price="${Number(product.price || 0)}" data-image="${esc(product.image_url || '')}">
-                        Add to Cart
-                    </button>
-                </article>
-            `).join('');
+                        </a>
+                        <a class="product-details-btn" href="product.html?id=${productId}">
+                            Product Details
+                        </a>
+                    </article>
+                `;
+            }).join('');
         }
-
-        productsContainer.addEventListener('click', event => {
-            const button = event.target.closest('.add-to-cart');
-            if (!button) return;
-            event.preventDefault();
-            event.stopPropagation();
-            addToCart({
-                id: Number(button.dataset.id),
-                name: button.dataset.name,
-                price: Number(button.dataset.price),
-                image_url: button.dataset.image
-            });
-            alert('Product added to cart');
-        });
     </script>
 </body>
 </html>

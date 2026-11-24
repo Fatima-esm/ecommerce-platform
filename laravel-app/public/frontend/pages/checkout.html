@@ -100,6 +100,26 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
         }
+        .stock-hint {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+        }
+        .stock-hint.ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .stock-hint.low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .stock-hint.muted {
+            background: #f1f5f9;
+            color: #475569;
+        }
         .notice { padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; }
         .notice.hidden { display: none; }
         @media (max-width: 900px) {
@@ -131,7 +151,7 @@
         <main class="container">
             <section class="panel form">
                 <h1 style="color: #1e293b; margin-top: 0;">Shopping Cart</h1>
-                <div id="notice" class="notice hidden"></div>
+                <div id="notice" class="notice hidden" role="alert" aria-live="polite"></div>
                 <div id="cartItems" style="margin-bottom: 20px;">
                     Loading cart...
                 </div>
@@ -161,10 +181,81 @@
 
         if (requireLogin()) {
             if (currentUser()?.role === 'admin') {
-                location.href = 'admin.html'; // منع الأدمن من دخول السلة وتوجيهه للوحة التحكم
+                location.href = 'admin.html';
             }
             document.getElementById('logoutBtn').addEventListener('click', logout);
+            initCartPage();
+        }
+
+        async function initCartPage() {
             renderCart();
+            await syncCartStockFromServer();
+            renderCart();
+        }
+
+        function showNotice(message, isError = false) {
+            msg(notice, message, isError);
+            notice.classList.remove('hidden');
+        }
+
+        function clearNotice() {
+            notice.textContent = '';
+            notice.classList.add('hidden');
+        }
+
+        function getMaxStock(item) {
+            return normalizeMaxStock(item);
+        }
+
+        async function syncCartStockFromServer() {
+            const cart = getCart();
+            if (!cart.length) return;
+
+            let changed = false;
+            const synced = await Promise.all(cart.map(async item => {
+                const pid = Number(item.product_id ?? item.id);
+                if (!pid) return item;
+
+                try {
+                    const res = await api(`/api/v1/products/${pid}`);
+                    const prod = extractObject(res);
+                    if (!prod) return item;
+
+                    const numericStock = normalizeMaxStock(prod);
+                    const nextItem = {
+                        ...item,
+                        product_id: pid,
+                        name: prod.name ?? item.name,
+                        price: prod.price ?? item.price,
+                        image_url: prod.image_url ?? item.image_url,
+                        stock: numericStock,
+                        maxStock: numericStock,
+                        is_available: prod.is_available
+                    };
+
+                    if (numericStock !== null && numericStock > 0 && Number(nextItem.quantity || 1) > numericStock) {
+                        nextItem.quantity = numericStock;
+                        changed = true;
+                    }
+
+                    if (
+                        nextItem.maxStock !== item.maxStock ||
+                        nextItem.price !== item.price ||
+                        nextItem.name !== item.name ||
+                        nextItem.image_url !== item.image_url
+                    ) {
+                        changed = true;
+                    }
+
+                    return nextItem;
+                } catch (_) {
+                    return item;
+                }
+            }));
+
+            if (changed) {
+                saveCart(synced);
+            }
         }
 
         function renderCart() {
@@ -176,12 +267,29 @@
                 return;
             }
 
-            placeButton.disabled = submitting;
+            let hasInvalidStock = false;
 
             cartItems.innerHTML = cart.map(item => {
-                const productId = Number(item.product_id);
-                const quantity = Number(item.quantity || 1);
+                const productId = Number(item.product_id ?? item.id);
+                const maxStock = getMaxStock(item);
+                let quantity = Math.max(1, Number(item.quantity || 1));
+
+                if (maxStock !== null && maxStock <= 0) {
+                    hasInvalidStock = true;
+                } else if (maxStock !== null && quantity > maxStock) {
+                    quantity = maxStock;
+                    updateCartQuantity(productId, maxStock);
+                }
+
                 const price = Number(item.price || 0);
+                const maxAttr = maxStock !== null && maxStock > 0 ? `max="${maxStock}"` : '';
+
+                let stockBadge = `<span class="stock-hint muted">Available stock: checking...</span>`;
+                if (maxStock !== null && maxStock <= 0) {
+                    stockBadge = `<span class="stock-hint low">Out of stock (0 available)</span>`;
+                } else if (maxStock !== null) {
+                    stockBadge = `<span class="stock-hint ok">Available in stock: ${maxStock}</span>`;
+                }
 
                 return `
                     <article class="panel cart-item" data-product-id="${productId}" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
@@ -191,12 +299,13 @@
                                 <h3 style="margin: 0 0 5px 0; font-size: 16px;">${esc(item.name || 'Product #' + productId)}</h3>
                                 <p style="margin: 0; color: #64748b; font-size: 13px;">Unit Price: ${money(price)}</p>
                                 <p style="margin: 0; color: #1e293b; font-weight: bold; font-size: 14px;">Total: ${money(price * quantity)}</p>
+                                ${stockBadge}
                             </div>
                         </div>
                         <div class="cart-item-actions" style="display: flex; gap: 15px; align-items: center;">
                             <label style="font-size: 13px;">
                                 Qty:
-                                <input class="quantity-input" type="number" min="1" value="${quantity}" data-product-id="${productId}" style="width: 60px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center;">
+                                <input class="quantity-input" type="number" min="1" ${maxAttr} value="${quantity}" data-product-id="${productId}" ${maxStock !== null && maxStock <= 0 ? 'disabled' : ''} style="width: 65px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center;">
                             </label>
                             <button class="btn danger remove-item" type="button" data-product-id="${productId}" style="background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
                                 Remove
@@ -206,38 +315,117 @@
                 `;
             }).join('');
 
-            const total = cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
+            placeButton.disabled = submitting || hasInvalidStock;
+
+            const refreshedCart = getCart();
+            const total = refreshedCart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
             totalElement.textContent = 'Total: ' + money(total);
         }
+
+        function enforceQuantityLimit(input) {
+            clearNotice();
+            const productId = Number(input.dataset.productId);
+            const cart = getCart();
+            const item = cart.find(entry => Number(entry.product_id ?? entry.id) === productId);
+            const maxStock = item ? getMaxStock(item) : null;
+
+            let quantity = Math.max(1, Math.floor(Number(input.value) || 1));
+
+            if (maxStock !== null && maxStock <= 0) {
+                input.value = 1;
+                showNotice(`${item?.name || 'This product'} is out of stock.`, true);
+                renderCart();
+                return;
+            }
+
+            if (maxStock !== null && quantity > maxStock) {
+                quantity = maxStock;
+                input.value = maxStock;
+                showNotice(`Cannot exceed available stock (${maxStock}) for ${item?.name || 'this product'}.`, true);
+            }
+
+            updateCartQuantity(productId, quantity);
+            renderCart();
+        }
+
+        cartItems.addEventListener('input', event => {
+            const input = event.target.closest('.quantity-input');
+            if (!input || input.value === '') return;
+            enforceQuantityLimit(input);
+        });
 
         cartItems.addEventListener('change', event => {
             const input = event.target.closest('.quantity-input');
             if (!input) return;
-            const productId = Number(input.dataset.productId);
-            const quantity = Math.max(1, Number(input.value) || 1);
-            updateCartQuantity(productId, quantity);
-            renderCart();
+            enforceQuantityLimit(input);
         });
 
         cartItems.addEventListener('click', event => {
             const button = event.target.closest('.remove-item');
             if (!button) return;
+            clearNotice();
             const productId = Number(button.dataset.productId);
             removeFromCart(productId);
             renderCart();
         });
 
+        function formatOrderError(error) {
+            const code = error?.code || error?.data?.error?.code || '';
+            const status = Number(error?.status || error?.data?.error?.status || 0);
+            const details = error?.details || error?.data?.error?.details;
+
+            if (code === 'INSUFFICIENT_STOCK' || status === 409) {
+                let extra = '';
+                if (Array.isArray(details) && details.length) {
+                    extra = ' (' + details.map(d => {
+                        const id = d.product_id ? `Product #${d.product_id}` : 'Item';
+                        const avail = d.available !== undefined ? `available: ${d.available}` : '';
+                        return [id, avail].filter(Boolean).join(' - ');
+                    }).join(' | ') + ')';
+                }
+                return (error?.message || 'Insufficient stock for one or more items.') + extra;
+            }
+
+            if (code === 'INVENTORY_UNAVAILABLE' || status === 503) {
+                return 'Inventory service is currently unavailable. Order was not placed.';
+            }
+
+            if (status === 422) {
+                return error?.message || 'Invalid order items or quantity.';
+            }
+
+            return error?.message || 'Unable to place order. Please try again.';
+        }
+
         placeButton.addEventListener('click', async () => {
             if (submitting) return;
+            clearNotice();
+
+            await syncCartStockFromServer();
+            renderCart();
+
             const cart = getCart();
             if (!cart.length) {
-                msg(notice, 'Shopping cart is empty', true);
-                notice.classList.remove('hidden');
+                showNotice('Shopping cart is empty', true);
+                placeButton.disabled = true;
                 return;
             }
 
+            for (const item of cart) {
+                const maxStock = getMaxStock(item);
+                const qty = Number(item.quantity || 0);
+                if (maxStock !== null && maxStock <= 0) {
+                    showNotice(`${item.name || 'Product'} is out of stock. Remove it or lower quantity.`, true);
+                    return;
+                }
+                if (maxStock !== null && qty > maxStock) {
+                    showNotice(`Quantity for ${item.name || 'product'} exceeds available stock (${maxStock}).`, true);
+                    return;
+                }
+            }
+
             const items = cart.map(item => ({
-                product_id: Number(item.product_id),
+                product_id: Number(item.product_id ?? item.id),
                 quantity: Number(item.quantity)
             }));
 
@@ -253,12 +441,15 @@
                 });
 
                 const order = extractObject(response);
+                if (!order || !order.id) {
+                    throw new Error('Order could not be confirmed by the server.');
+                }
+
                 clearCart();
 
                 cartItems.innerHTML = '<p>Order placed successfully</p>';
                 totalElement.textContent = '';
-                msg(notice, 'Order placed successfully. Order ID: ' + (order?.id || 'Check My Orders'));
-                notice.classList.remove('hidden');
+                showNotice('Order placed successfully. Order ID: ' + order.id, false);
 
                 placeButton.textContent = 'Order Placed';
                 placeButton.disabled = true;
@@ -271,8 +462,9 @@
                 submitting = false;
                 placeButton.disabled = false;
                 placeButton.textContent = 'Place Order';
-                msg(notice, error.message, true);
-                notice.classList.remove('hidden');
+                await syncCartStockFromServer();
+                renderCart();
+                showNotice('Order failed: ' + formatOrderError(error), true);
             }
         });
     </script>

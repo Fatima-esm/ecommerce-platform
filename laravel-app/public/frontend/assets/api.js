@@ -1,5 +1,3 @@
-
-
 const API = (
     window.APP_CONFIG?.API_BASE_URL ||
     window.location.origin
@@ -9,11 +7,9 @@ const TK = 'token';
 const UK = 'user';
 const CART_KEY = 'shopapp_cart';
 
-
 function token() {
     return sessionStorage.getItem(TK) || '';
 }
-
 
 function currentUser() {
     try {
@@ -22,7 +18,6 @@ function currentUser() {
         return null;
     }
 }
-
 
 function saveSession(data) {
     const response = data?.data ?? data;
@@ -39,7 +34,6 @@ function saveSession(data) {
     }
 }
 
-
 // تسجيل الخروج من التبويب الحالي فقط
 function logout() {
     sessionStorage.removeItem(TK);
@@ -47,7 +41,6 @@ function logout() {
 
     location.href = 'auth.html';
 }
-
 
 // ==========================================
 // 3. الاتصال بواجهة Laravel API
@@ -68,7 +61,6 @@ async function api(path, options = {}) {
         headers
     });
 
-    // التعامل مع الاستجابات الفارغة
     if (response.status === 204) {
         return {};
     }
@@ -86,12 +78,16 @@ async function api(path, options = {}) {
     }
 
     if (!response.ok) {
+        const apiError = (data && typeof data.error === 'object' && data.error !== null)
+            ? data.error
+            : null;
+
         let message =
+            apiError?.message ||
             data.message ||
-            data.error ||
+            (typeof data.error === 'string' ? data.error : '') ||
             `HTTP ${response.status}`;
 
-        // إظهار أخطاء التحقق القادمة من Laravel
         if (data.errors && typeof data.errors === 'object') {
             const validationMessages = Object.values(data.errors)
                 .flat()
@@ -102,18 +98,21 @@ async function api(path, options = {}) {
             }
         }
 
-        throw new Error(message);
+        const err = new Error(message);
+        err.status = Number(apiError?.status || data.status || response.status);
+        err.code = apiError?.code || data.code || '';
+        err.details = apiError?.details ?? data.details ?? null;
+        err.data = data;
+        throw err;
     }
 
     return data;
 }
 
-
 // ==========================================
 // 4. معالجة أشكال استجابة API
 // ==========================================
 
-// استخراج قائمة سواء كانت مباشرة أو داخل data
 function extractRows(response) {
     let value = response?.data ?? response;
 
@@ -128,8 +127,6 @@ function extractRows(response) {
     return [];
 }
 
-
-// استخراج كائن مفرد من الاستجابة
 function extractObject(response) {
     let value = response?.data ?? response;
 
@@ -145,7 +142,6 @@ function extractObject(response) {
 
     return value;
 }
-
 
 // ==========================================
 // 5. الرسائل والتنسيقات المساعدة
@@ -169,8 +165,6 @@ function money(value) {
     return amount.toFixed(2) + ' $';
 }
 
-
-// حماية النصوص قبل إدراجها داخل HTML
 function esc(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
         '&': '&amp;',
@@ -181,8 +175,6 @@ function esc(value) {
     })[char]);
 }
 
-
-// شارة حالة الطلب
 function badge(status) {
     const allowed = [
         'pending',
@@ -200,7 +192,6 @@ function badge(status) {
         </span>
     `;
 }
-
 
 // ==========================================
 // 6. التحقق من الصلاحيات
@@ -229,12 +220,10 @@ function requireAdmin() {
     return true;
 }
 
-
 // ==========================================
 // 7. إدارة سلة المشتريات
 // ==========================================
 
-// السلة تبقى مشتركة بين التبويبات
 function getCart() {
     try {
         const cart = JSON.parse(
@@ -242,12 +231,10 @@ function getCart() {
         );
 
         return Array.isArray(cart) ? cart : [];
-
     } catch {
         return [];
     }
 }
-
 
 function saveCart(cart) {
     localStorage.setItem(
@@ -256,8 +243,14 @@ function saveCart(cart) {
     );
 }
 
+function normalizeMaxStock(source) {
+    const raw = source?.maxStock ?? source?.stock ?? source?.stockQuantity;
+    if (raw === null || raw === undefined || raw === '') return null;
+    const num = Number(raw);
+    return Number.isFinite(num) && num >= 0 ? Math.floor(num) : null;
+}
 
-// إضافة منتج إلى السلة
+// إضافة منتج إلى السلة مع احترام الحد الأقصى للمخزون
 function addToCart(product, quantity = 1) {
     if (!product || !Number.isInteger(Number(product.id)) ||
         Number(product.id) <= 0) {
@@ -265,36 +258,43 @@ function addToCart(product, quantity = 1) {
     }
 
     const cart = getCart();
-
     const productId = Number(product.id);
-    const qty = Math.max(
-        1,
-        Math.floor(Number(quantity) || 1)
-    );
+    const qty = Math.max(1, Math.floor(Number(quantity) || 1));
+    const maxStock = normalizeMaxStock(product);
 
     const existing = cart.find(item =>
         Number(item.product_id) === productId
     );
 
     if (existing) {
-        existing.quantity =
-            Number(existing.quantity || 0) + qty;
-
+        const effectiveMax = maxStock !== null ? maxStock : normalizeMaxStock(existing);
+        let nextQty = Number(existing.quantity || 0) + qty;
+        if (effectiveMax !== null) {
+            existing.maxStock = effectiveMax;
+            existing.stock = effectiveMax;
+            nextQty = Math.min(nextQty, Math.max(1, effectiveMax));
+        }
+        existing.quantity = nextQty;
     } else {
+        const initialQty = maxStock !== null && maxStock > 0
+            ? Math.min(qty, maxStock)
+            : qty;
+
         cart.push({
             product_id: productId,
-            quantity: qty,
+            quantity: initialQty,
             name: product.name || '',
             price: Number(product.price || 0),
-            image_url: product.image_url || null
+            image_url: product.image_url || null,
+            stock: maxStock,
+            maxStock: maxStock
         });
     }
 
     saveCart(cart);
 }
 
-
-// تعديل كمية منتج
+// تعديل كمية منتج مع منع تجاوز المخزون المتوفر
 function updateCartQuantity(productId, quantity) {
     const cart = getCart();
 
@@ -304,16 +304,17 @@ function updateCartQuantity(productId, quantity) {
 
     if (!item) return;
 
-    item.quantity = Math.max(
-        1,
-        Math.floor(Number(quantity) || 1)
-    );
+    let nextQty = Math.max(1, Math.floor(Number(quantity) || 1));
+    const maxStock = normalizeMaxStock(item);
 
+    if (maxStock !== null && maxStock > 0 && nextQty > maxStock) {
+        nextQty = maxStock;
+    }
+
+    item.quantity = nextQty;
     saveCart(cart);
 }
 
-
-// حذف منتج
 function removeFromCart(productId) {
     const cart = getCart().filter(item =>
         Number(item.product_id) !== Number(productId)
@@ -322,8 +323,6 @@ function removeFromCart(productId) {
     saveCart(cart);
 }
 
-
-// تفريغ السلة
 function clearCart() {
     localStorage.removeItem(CART_KEY);
 }
