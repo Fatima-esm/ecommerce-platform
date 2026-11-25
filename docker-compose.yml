@@ -144,7 +144,8 @@ services:
 
   worker:
     build: ./laravel-app
-    container_name: queue-worker
+    deploy:
+      replicas: 3
     entrypoint: ["php", "artisan", "queue:work", "rabbitmq", "--queue=emails,broadcasts", "--sleep=1", "--tries=3", "--timeout=50"]
     environment:
       APP_ENV: local
