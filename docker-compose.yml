@@ -16,7 +16,31 @@ services:
       retries: 10
     ports:
       - "5432:5432"
+    # تهيئة Laravel مرة واحدة قبل تشغيل النسخ
+  laravel-init:
+    build: ./laravel-app
+    environment:
+      APP_ENV: local
+      APP_KEY: base64:YvHTIIzZ2JCMi1dV4+ROpQQQmhR+qPSpXQIctXP52jM=
+      APP_INIT: "true"
 
+      DB_CONNECTION: pgsql
+      DB_HOST: laravel-db
+      DB_PORT: 5432
+      DB_DATABASE: shop
+      DB_USERNAME: shop
+      DB_PASSWORD: shop
+
+    depends_on:
+      laravel-db:
+        condition: service_healthy
+
+    volumes:
+      - ./laravel-app:/var/www/html
+      - uploads:/var/www/html/storage/app/public
+
+    restart: "no"
+    command: ["php", "artisan", "--version"]
   # قاعدة بيانات خدمة المستودع
   inventory-db:
     image: postgres:16-alpine
@@ -56,6 +80,7 @@ services:
     deploy:
       replicas: 3
     environment:
+      APP_INIT: "false"
       APP_ENV: local
       APP_DEBUG: "${APP_DEBUG:-true}"
       APP_KEY: base64:YvHTIIzZ2JCMi1dV4+ROpQQQmhR+qPSpXQIctXP52jM=
@@ -100,6 +125,8 @@ services:
       LOG_STACK: stderr
 
     depends_on:
+      laravel-init:
+        condition: service_completed_successfully
       laravel-db:
         condition: service_healthy
       inventory:
@@ -146,8 +173,9 @@ services:
     build: ./laravel-app
     deploy:
       replicas: 3
-    entrypoint: ["php", "artisan", "queue:work", "rabbitmq", "--queue=emails,broadcasts", "--sleep=1", "--tries=3", "--timeout=50"]
+    command: ["php", "artisan", "queue:work", "rabbitmq", "--queue=emails,broadcasts", "--sleep=1", "--tries=3", "--timeout=50"]
     environment:
+      APP_INIT: "false"
       APP_ENV: local
       APP_KEY: base64:YvHTIIzZ2JCMi1dV4+ROpQQQmhR+qPSpXQIctXP52jM=
       DB_CONNECTION: pgsql
@@ -182,6 +210,8 @@ services:
       LOG_CHANNEL: stack
       LOG_STACK: stderr
     depends_on:
+      laravel-init:
+        condition: service_completed_successfully
       rabbitmq:
         condition: service_healthy
       laravel-db:
